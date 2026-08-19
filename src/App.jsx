@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import PlayerBar from './components/PlayerBar';
-import HomeTab from './components/Hometab';
+import HomeTab from './components/HomeTab';
 import FeedTab from './tabs/FeedTab';
 import MusicTab from './tabs/MusicTab';
 import RadioTab from './tabs/RadioTab';
