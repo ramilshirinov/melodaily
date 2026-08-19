@@ -58,6 +58,15 @@ export default function App() {
   const listenerInterval = useRef(null);
 
   /* Player Engine */
+  const handleNext = useCallback(() => {
+    if (!currentTrack) return;
+    const idx = TRACKS.findIndex((t) => t.id === currentTrack.id);
+    const nextTrack = TRACKS[(idx + 1) % TRACKS.length];
+    setCurrentTrack(nextTrack);
+    setProgress(0);
+    setIsPlaying(true);
+  }, [currentTrack]);
+
   useEffect(() => {
     if (isPlaying && currentTrack) {
       progressInterval.current = setInterval(() => {
@@ -71,7 +80,7 @@ export default function App() {
       }, 1000);
     }
     return () => clearInterval(progressInterval.current);
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying, currentTrack, handleNext]);
 
   useEffect(() => {
     if (sleepMinutesLeft > 0) {
@@ -87,7 +96,7 @@ export default function App() {
       }, 1000);
     }
     return () => clearInterval(sleepInterval.current);
-  }, [sleepMinutesLeft > 0]);
+  }, [sleepMinutesLeft]);
 
   useEffect(() => {
     if (activeTab === 'radio') {
@@ -116,15 +125,6 @@ export default function App() {
       return;
     }
     setIsPlaying((p) => !p);
-  };
-
-  const handleNext = () => {
-    if (!currentTrack) return;
-    const idx = TRACKS.findIndex((t) => t.id === currentTrack.id);
-    const nextTrack = TRACKS[(idx + 1) % TRACKS.length];
-    setCurrentTrack(nextTrack);
-    setProgress(0);
-    setIsPlaying(true);
   };
 
   const handlePrev = () => {
@@ -219,7 +219,7 @@ export default function App() {
   const bookmarkedVideoIds = videos.filter((v) => v.bookmarked).map((v) => v.trackId);
 
   return (
-    <div style={{ background: COLORS.cream, minHeight: '100vh', ...bodyFont }}>
+    <div style={{ background: COLORS?.bg || COLORS?.cream || '#2A211F', minHeight: '100vh', fontFamily: bodyFont }}>
       <style>{`
         @import url('${FONT_IMPORT_URL}');
         @keyframes melo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -229,8 +229,8 @@ export default function App() {
         .animate-fadeIn { animation: fadeIn 0.2s ease; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         input[type="range"] { -webkit-appearance: none; appearance: none; background: rgba(197,160,89,0.25); border-radius: 999px; height: 4px; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: ${COLORS.gold}; cursor: pointer; }
-        input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: ${COLORS.gold}; border: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: ${COLORS?.gold || '#C5A059'}; cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: ${COLORS?.gold || '#C5A059'}; border: none; cursor: pointer; }
         * { box-sizing: border-box; }
       `}</style>
 

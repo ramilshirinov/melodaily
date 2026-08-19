@@ -1,56 +1,76 @@
+// src/components/Header.jsx
 import React, { useMemo } from 'react';
-import { Search, Filter, Film, Music, Radio, Users, User } from 'lucide-react';
-import { Logo } from './Common';
-import { COLORS, TRACKS, displayFont, accentFont, bodyFont } from '../constants/data';
+import { Search, Filter, Home, Film, Music, Radio, Users, User } from 'lucide-react';
+import { TRACKS } from '../constants/data';
 
-export default function Header({ activeTab, setActiveTab, search, setSearch, filters, setFilters, showFilters, setShowFilters }) {
-  const TABS = [
-    { id: 'feed', label: 'Estetik Axın', icon: Film },
-    { id: 'music', label: 'Musiqi', icon: Music },
-    { id: 'radio', label: 'MeloRadio', icon: Radio },
-    { id: 'together', label: 'Birlikdə Dinlə & Cütlüklər', icon: Users },
-    { id: 'profile', label: 'Profilim', icon: User },
-  ];
+const TABS = [
+  { id: 'home', label: 'Əsas', icon: Home },
+  { id: 'feed', label: 'Estetik Axın', icon: Film },
+  { id: 'music', label: 'Musiqi', icon: Music },
+  { id: 'radio', label: 'MeloRadio', icon: Radio },
+  { id: 'together', label: 'Birlikdə Dinlə & Cütlüklər', icon: Users },
+  { id: 'profile', label: 'Profilim', icon: User },
+];
 
+export default function Header({
+  activeTab,
+  setActiveTab,
+  search,
+  setSearch,
+  filters,
+  setFilters,
+  showFilters,
+  setShowFilters,
+}) {
   const singers = useMemo(() => [...new Set(TRACKS.map((t) => t.singer))], []);
   const films = useMemo(() => [...new Set(TRACKS.map((t) => t.film))], []);
   const decades = useMemo(() => [...new Set(TRACKS.map((t) => t.decade))].sort(), []);
   const moods = useMemo(() => [...new Set(TRACKS.map((t) => t.mood))], []);
+  const authors = useMemo(() => [...new Set(TRACKS.map((t) => t.creator.split(' · ')[0]))], []);
 
   return (
     <header
       className="sticky top-0 z-40 border-b"
       style={{ background: 'rgba(42,33,31,0.97)', borderColor: 'rgba(197,160,89,0.25)', backdropFilter: 'blur(6px)' }}
     >
-      <div className="max-w-6xl mx-auto px-4 md:px-6">
-        <div className="flex items-center gap-4 py-3">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Logo size={32} />
+      <div className="max-w-6xl mx-auto px-4 md:px-8">
+
+        {/* Üst sıra: loqo + axtarış */}
+        <div className="flex flex-wrap items-center gap-4 md:gap-6 py-4 md:py-5">
+
+          <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveTab('home')}>
+            {/* Public qovluğundakı Loqo */}
+            <img 
+              src="/logo.jpg" 
+              alt="MeloDaily Logo" 
+              className="w-10 h-10 rounded-xl object-cover border"
+              style={{ borderColor: 'rgba(197,160,89,0.4)' }}
+            />
             <div className="leading-tight">
-              <div style={{ ...displayFont, color: COLORS.cream, fontSize: 19, letterSpacing: 0.3 }}>
-                MeloDaily <span style={{ color: COLORS.gold }}>#melodaily</span>
+              <div style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3ED', fontSize: 19, letterSpacing: 0.3 }}>
+                MeloDaily <span style={{ color: '#C5A059' }}>#melodaily</span>
               </div>
-              <div style={{ ...accentFont, color: COLORS.goldSoft, fontSize: 12.5, fontStyle: 'italic' }}>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", color: '#D8BD84', fontSize: 12.5, fontStyle: 'italic' }}>
                 Milli Sosial & Musiqi Platforması
               </div>
             </div>
           </div>
 
-          <div className="flex-1 hidden md:flex items-center gap-2 max-w-xl ml-4">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.goldSoft }} />
+          <div className="flex items-center gap-3 flex-1 min-w-[240px]">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#D8BD84' }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Mahnı, müğənni, film, əhval-ruhiyyə axtar..."
-                className="w-full pl-9 pr-3 py-2 rounded-full text-sm outline-none"
-                style={{ background: 'rgba(247,243,237,0.08)', color: COLORS.cream, border: '1px solid rgba(197,160,89,0.3)', ...bodyFont }}
+                className="w-full pl-9 pr-3 py-2.5 rounded-full text-sm outline-none"
+                style={{ background: 'rgba(247,243,237,0.08)', color: '#F7F3ED', border: '1px solid rgba(197,160,89,0.3)' }}
               />
             </div>
             <button
               onClick={() => setShowFilters((s) => !s)}
               className="p-2.5 rounded-full shrink-0 transition"
-              style={{ background: showFilters ? COLORS.gold : 'rgba(197,160,89,0.15)', color: showFilters ? COLORS.bronze : COLORS.gold }}
+              style={{ background: showFilters ? '#C5A059' : 'rgba(197,160,89,0.15)', color: showFilters ? '#2A211F' : '#C5A059' }}
               title="Filtrlər"
             >
               <Filter size={16} />
@@ -58,32 +78,13 @@ export default function Header({ activeTab, setActiveTab, search, setSearch, fil
           </div>
         </div>
 
-        <div className="md:hidden pb-3 flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.goldSoft }} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Axtar..."
-              className="w-full pl-9 pr-3 py-2 rounded-full text-sm outline-none"
-              style={{ background: 'rgba(247,243,237,0.08)', color: COLORS.cream, border: '1px solid rgba(197,160,89,0.3)', ...bodyFont }}
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters((s) => !s)}
-            className="p-2.5 rounded-full shrink-0"
-            style={{ background: showFilters ? COLORS.gold : 'rgba(197,160,89,0.15)', color: showFilters ? COLORS.bronze : COLORS.gold }}
-          >
-            <Filter size={16} />
-          </button>
-        </div>
-
+        {/* Filtr paneli */}
         {showFilters && (
-          <div className="pb-4 grid grid-cols-2 md:grid-cols-5 gap-2 animate-fadeIn">
+          <div className="pb-5 grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
               { label: 'Müğənni', key: 'singer', options: singers },
               { label: 'Film / Kino', key: 'film', options: films },
-              { label: 'Müəllif', key: 'author', options: ['Rza Təhmasib', 'Hüseyn Seyidzadə', 'Azərbaycan Dövlət Radiosu', 'AzTV Arxivi', 'Bakı Kinostudiyası'] },
+              { label: 'Müəllif', key: 'author', options: authors },
               { label: 'Onillik', key: 'decade', options: decades },
               { label: 'Əhval-ruhiyyə', key: 'mood', options: moods },
             ].map((f) => (
@@ -91,8 +92,8 @@ export default function Header({ activeTab, setActiveTab, search, setSearch, fil
                 key={f.key}
                 value={filters[f.key]}
                 onChange={(e) => setFilters((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                className="rounded-lg px-2.5 py-2 text-xs outline-none"
-                style={{ background: 'rgba(247,243,237,0.08)', color: COLORS.cream, border: '1px solid rgba(197,160,89,0.3)', ...bodyFont }}
+                className="rounded-lg px-3 py-2.5 text-xs outline-none"
+                style={{ background: 'rgba(247,243,237,0.08)', color: '#F7F3ED', border: '1px solid rgba(197,160,89,0.3)' }}
               >
                 <option value="" style={{ color: '#000' }}>{f.label}</option>
                 {f.options.map((o) => (
@@ -103,7 +104,8 @@ export default function Header({ activeTab, setActiveTab, search, setSearch, fil
           </div>
         )}
 
-        <nav className="flex gap-1 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
+        {/* Naviqasiya nişanları */}
+        <nav className="flex flex-wrap gap-2 pb-4">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = activeTab === t.id;
@@ -111,12 +113,11 @@ export default function Header({ activeTab, setActiveTab, search, setSearch, fil
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] whitespace-nowrap transition-all duration-200"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] whitespace-nowrap transition-all duration-200"
                 style={{
-                  background: active ? COLORS.gold : 'transparent',
-                  color: active ? COLORS.bronze : COLORS.creamDeep,
+                  background: active ? '#C5A059' : 'transparent',
+                  color: active ? '#2A211F' : '#EFE7D8',
                   fontWeight: active ? 700 : 500,
-                  ...bodyFont,
                 }}
               >
                 <Icon size={14} />

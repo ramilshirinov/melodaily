@@ -1,40 +1,74 @@
-import { Star, Heart, Music, Radio, User, Users, Play, Pause, Search, Disc3, Disc, Award, Grid3x3, Coffee, Gift, MessageCircle, Share2, Compass, Home } from 'lucide-react';
+// src/constants/data.js
 
-export const FONT_IMPORT_URL =
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap';
+/* ============================================================
+   MeloDaily — Mərkəzi Data Mənbəyi
+   Bu fayl bütün tətbiq üçün: mahnı kataloqu, janrlar, sosial
+   postlar, hədiyyələr, əhval-ruhiyyə filtrləri və s. saxlayır.
 
-export const COLORS = {
-  cream: '#F7F3ED',
-  creamDeep: '#EFE7D8',
-  bronze: '#2A211F',
-  bronzeSoft: '#4A3A2A',
-  gold: '#C5A059',
-  goldSoft: '#D8BD84',
-  burgundy: '#6E2C2C',
-  sage: '#7C8B6F',
-  inkGold: '#8B6F3E',
-  night: '#33324A',
-};
+   QEYD (audio haqqında): Tanınmış ifaçıların əsl kommersiya
+   səsyazılarını paylaşmaq müəllif hüquqlarını pozduğu üçün,
+   audioUrl sahələrində pulsuz lisenziyalı SoundHelix demo
+   treklərindən istifadə olunub — player REAL işləyir. Production
+   üçün bu linkləri öz lisenziyalı fayllarınızla (məs. /public/audio/…
+   və ya öz CDN-iniz) əvəz edin.
+============================================================ */
 
-export const displayFont = { fontFamily: "'Playfair Display', 'Georgia', serif" };
-export const accentFont = { fontFamily: "'Cormorant Garamond', 'Georgia', serif" };
-export const bodyFont = { fontFamily: "'Inter', sans-serif" };
+// ---------- Janrlar ----------
+export const GENRES = [
+  { id: 'all', label: 'Hamısı' },
+  { id: 'retro', label: 'Retro' },
+  { id: 'jazz', label: 'Caz' },
+  { id: 'pop', label: 'Pop' },
+  { id: 'rock', label: 'Rok' },
+  { id: 'classical', label: 'Klassik' },
+  { id: 'aesthetic', label: 'Estetik' },
+];
 
+// ---------- Demo audio hovuzu (SoundHelix — pulsuz, lisenziyalı) ----------
+const DEMO_AUDIO = (n) => `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
+
+// ---------- Əsas Mahnı Kataloqu ----------
 export const TRACKS = [
-  { id: 1, title: 'Sevgi Nəğməsi', singer: 'Şövkət Ələkbərova', film: 'Arşın Mal Alan', creator: 'Rejissor: Rza Təhmasib · 1945', mood: 'Romantik', decade: '1940-lar', duration: 194, colors: ['#C5A059', '#2A211F'] },
-  { id: 2, title: 'Bakı Gecələri', singer: 'Rəşid Behbudov', film: 'O Olmasın, Bu Olsun', creator: 'Rejissor: Hüseyn Seyidzadə · 1956', mood: 'Nostaljik', decade: '1950-lar', duration: 210, colors: ['#8B6F3E', '#2A211F'] },
-  { id: 3, title: 'Qərənfil', singer: 'Elmira Rəhimova', film: 'Studiya Konsert Arxivi', creator: 'Azərbaycan Dövlət Filarmoniyası · 1963', mood: 'Kədərli-Şirin', decade: '1960-lar', duration: 178, colors: ['#C5A059', '#6E2C2C'] },
-  { id: 4, title: 'Sən Getdin', singer: 'Müslüm Maqomayev', film: 'Konsert Zalı Arxivi', creator: 'Azərbaycan Dövlət Televiziyası · 1971', mood: 'Romantik', decade: '1970-lar', duration: 225, colors: ['#B08D4F', '#2A211F'] },
-  { id: 5, title: 'Yağış Yağır', singer: 'Nüşabə Muradova', film: 'Bakı Radio Arxivi', creator: 'Azərbaycan Dövlət Radiosu · 1985', mood: 'Rahatlıq', decade: '1980-lar', duration: 200, colors: ['#7C8B6F', '#2A211F'] },
-  { id: 6, title: 'Payız Simfoniyası', singer: 'Kamilə Nəbiyeva', film: 'Payız Duyğuları', creator: 'AzTV Arxivi · 1992', mood: 'Nostaljik', decade: '1990-lar', duration: 240, colors: ['#C5A059', '#4A3A2A'] },
-  { id: 7, title: 'Gecə Küçələri', singer: 'Günay İbrahimli', film: 'Şəhər Simfoniyası', creator: 'Bakı Kinostudiyası · 1988', mood: 'Gecə', decade: '1980-lar', duration: 188, colors: ['#33324A', '#2A211F'] },
-  { id: 8, title: 'Səhər Duası', singer: 'Elmira Rəhimova', film: 'Sübh Mahnıları', creator: 'Azərbaycan Dövlət Filarmoniyası · 1965', mood: 'Səhər', decade: '1960-lar', duration: 165, colors: ['#C5A059', '#8B6F3E'] },
-  { id: 9, title: 'Xatirələr Kitabı', singer: 'Şövkət Ələkbərova', film: 'Köhnə Albom', creator: 'Studiya Arxivi · 1958', mood: 'Nostaljik', decade: '1950-lar', duration: 215, colors: ['#B08D4F', '#2A211F'] },
-  { id: 10, title: 'Bizim Nəğmə', singer: 'Rəşid Behbudov & Şövkət Ələkbərova', film: 'İki Ürək', creator: 'Bakı Kinostudiyası · 1962', mood: 'Romantik', decade: '1960-lar', duration: 230, colors: ['#C5A059', '#6E2C2C'] },
+  // --- Azərbaycan Retrosu ---
+  { id: 1, title: 'Sevgi Nəğməsi', singer: 'Şövkət Ələkbərova', film: 'Arşın Mal Alan', creator: 'Rejissor: Rza Təhmasib · 1945', mood: 'Romantik', decade: '1940-lar', genre: 'retro', isForeign: false, duration: 194, colors: ['#C5A059', '#2A211F'], audioUrl: DEMO_AUDIO(1) },
+  { id: 2, title: 'Bakı Gecələri', singer: 'Rəşid Behbudov', film: 'O Olmasın, Bu Olsun', creator: 'Rejissor: Hüseyn Seyidzadə · 1956', mood: 'Nostaljik', decade: '1950-lar', genre: 'retro', isForeign: false, duration: 210, colors: ['#8B6F3E', '#2A211F'], audioUrl: DEMO_AUDIO(2) },
+  { id: 3, title: 'Qərənfil', singer: 'Elmira Rəhimova', film: 'Studiya Konsert Arxivi', creator: 'Azərbaycan Dövlət Filarmoniyası · 1963', mood: 'Kədərli-Şirin', decade: '1960-lar', genre: 'classical', isForeign: false, duration: 178, colors: ['#C5A059', '#6E2C2C'], audioUrl: DEMO_AUDIO(3) },
+  { id: 4, title: 'Sən Getdin', singer: 'Müslüm Maqomayev', film: 'Konsert Zalı Arxivi', creator: 'Azərbaycan Dövlət Televiziyası · 1971', mood: 'Romantik', decade: '1970-lar', genre: 'classical', isForeign: false, duration: 225, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(4) },
+  { id: 5, title: 'Yağış Yağır', singer: 'Nüşabə Muradova', film: 'Bakı Radio Arxivi', creator: 'Azərbaycan Dövlət Radiosu · 1985', mood: 'Rahatlıq', decade: '1980-lar', genre: 'retro', isForeign: false, duration: 200, colors: ['#7C8B6F', '#2A211F'], audioUrl: DEMO_AUDIO(5) },
+  { id: 6, title: 'Payız Simfoniyası', singer: 'Kamilə Nəbiyeva', film: 'Payız Duyğuları', creator: 'AzTV Arxivi · 1992', mood: 'Nostaljik', decade: '1990-lar', genre: 'retro', isForeign: false, duration: 240, colors: ['#C5A059', '#4A3A2A'], audioUrl: DEMO_AUDIO(6) },
+  { id: 7, title: 'Gecə Küçələri', singer: 'Günay İbrahimli', film: 'Şəhər Simfoniyası', creator: 'Bakı Kinostudiyası · 1988', mood: 'Gecə', decade: '1980-lar', genre: 'aesthetic', isForeign: false, duration: 188, colors: ['#33324A', '#2A211F'], audioUrl: DEMO_AUDIO(7) },
+  { id: 8, title: 'Səhər Duası', singer: 'Elmira Rəhimova', film: 'Sübh Mahnıları', creator: 'Azərbaycan Dövlət Filarmoniyası · 1965', mood: 'Səhər', decade: '1960-lar', genre: 'classical', isForeign: false, duration: 165, colors: ['#C5A059', '#8B6F3E'], audioUrl: DEMO_AUDIO(8) },
+  { id: 9, title: 'Xatirələr Kitabı', singer: 'Şövkət Ələkbərova', film: 'Köhnə Albom', creator: 'Studiya Arxivi · 1958', mood: 'Nostaljik', decade: '1950-lar', genre: 'retro', isForeign: false, duration: 215, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(9) },
+  { id: 10, title: 'Bizim Nəğmə', singer: 'Rəşid Behbudov & Şövkət Ələkbərova', film: 'İki Ürək', creator: 'Bakı Kinostudiyası · 1962', mood: 'Romantik', decade: '1960-lar', genre: 'retro', isForeign: false, duration: 230, colors: ['#C5A059', '#6E2C2C'], audioUrl: DEMO_AUDIO(10) },
+
+  // --- Xarici Zamansız Klassiklər (isForeign: true) ---
+  { id: 11, title: 'Fly Me to the Moon', singer: 'Frank Sinatra', film: 'Reprise Records Arxivi', creator: 'Bert Kaempfert bəstəsi · 1964', mood: 'Romantik', decade: '1960-lar', genre: 'jazz', isForeign: true, duration: 148, colors: ['#8B6F3E', '#2A211F'], audioUrl: DEMO_AUDIO(11) },
+  { id: 12, title: 'La Vie en Rose', singer: 'Édith Piaf', film: 'Paris Studio Arxivi', creator: 'Louiguy bəstəsi · 1947', mood: 'Romantik', decade: '1940-lar', genre: 'jazz', isForeign: true, duration: 198, colors: ['#6E2C2C', '#2A211F'], audioUrl: DEMO_AUDIO(12) },
+  { id: 13, title: "That's Amore", singer: 'Dean Martin', film: 'Capitol Records Arxivi', creator: 'Harry Warren bəstəsi · 1953', mood: 'Şən', decade: '1950-lar', genre: 'pop', isForeign: true, duration: 190, colors: ['#C5A059', '#4A3A2A'], audioUrl: DEMO_AUDIO(13) },
+  { id: 14, title: 'Unforgettable', singer: 'Nat King Cole', film: 'Capitol Studio Arxivi', creator: 'Irving Gordon bəstəsi · 1951', mood: 'Romantik', decade: '1950-lar', genre: 'jazz', isForeign: true, duration: 200, colors: ['#8B6F3E', '#33324A'], audioUrl: DEMO_AUDIO(14) },
+  { id: 15, title: 'Historia de un Amor', singer: 'Julio Iglesias', film: 'Discos CBS Arxivi', creator: 'Carlos Eleta Almarán bəstəsi · 1977', mood: 'Nostaljik', decade: '1970-lar', genre: 'pop', isForeign: true, duration: 210, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(15) },
+  { id: 21, title: 'Yesterday', singer: 'The Beatles', film: 'Parlophone Arxivi', creator: 'Lennon–McCartney bəstəsi · 1965', mood: 'Kədərli-Şirin', decade: '1960-lar', genre: 'rock', isForeign: true, duration: 125, colors: ['#33324A', '#2A211F'], audioUrl: DEMO_AUDIO(16) },
+
+  // --- Müasir və Zamansız İfalar (yalnız retro deyil) ---
+  { id: 16, title: 'Gecənin Sonu', singer: 'Zülfiyyə Xanbabayeva', film: 'Stüdiya Buraxılışı', creator: 'Müasir Estrada Arxivi · 2016', mood: 'Romantik', decade: '2010-lar', genre: 'pop', isForeign: false, duration: 205, colors: ['#C5A059', '#6E2C2C'], audioUrl: DEMO_AUDIO(1) },
+  { id: 17, title: 'Come Away With Me', singer: 'Norah Jones', film: 'Blue Note Records Arxivi', creator: 'Norah Jones bəstəsi · 2002', mood: 'Rahatlıq', decade: '2000-lər', genre: 'jazz', isForeign: true, duration: 220, colors: ['#7C8B6F', '#2A211F'], audioUrl: DEMO_AUDIO(2) },
+  { id: 18, title: 'Perfect', singer: 'Ed Sheeran', film: 'Asylum Records Arxivi', creator: 'Ed Sheeran bəstəsi · 2017', mood: 'Romantik', decade: '2010-lar', genre: 'pop', isForeign: true, duration: 263, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(3) },
+  { id: 19, title: 'River Flows in You', singer: 'Yiruma', film: 'Stüdiya Buraxılışı', creator: 'Yiruma bəstəsi · 2001', mood: 'Rahatlıq', decade: '2000-lər', genre: 'classical', isForeign: true, duration: 180, colors: ['#C5A059', '#8B6F3E'], audioUrl: DEMO_AUDIO(4) },
+  { id: 20, title: 'Xəyalpərəst', singer: 'Röya', film: 'Stüdiya Buraxılışı', creator: 'Müasir Estrada Arxivi · 2019', mood: 'Estetik', decade: '2010-lar', genre: 'aesthetic', isForeign: false, duration: 195, colors: ['#33324A', '#2A211F'], audioUrl: DEMO_AUDIO(5) },
 ];
 
 export const trackById = (id) => TRACKS.find((t) => t.id === id);
 
+// ---------- Sosial Axın (Feed) — istifadəçi postları ----------
+export const SOCIAL_POSTS = [
+  { id: 1, author: 'Nərgiz Əliyeva', avatarInitial: 'N', type: 'text', content: 'Bu gün babamın vinillərini tapdım, "Bizim Nəğmə" hələ də ilk gündəki kimi səslənir 🎶', trackId: 10, likes: 64, comments: 5, time: '2 saat əvvəl' },
+  { id: 2, author: 'Tural Məmmədov', avatarInitial: 'T', type: 'image', content: 'Köhnə İçərişəhər küçələri — bu axşam üçün ideal fon musiqisi ilə.', trackId: 2, likes: 112, comments: 9, time: '5 saat əvvəl' },
+  { id: 3, author: 'Aysel Rzayeva', avatarInitial: 'A', type: 'video', content: 'Nənəmin evində tapılan qədim qrammofonun səsini çəkdim, dinləyin.', trackId: 1, likes: 238, comments: 17, time: 'Dünən' },
+  { id: 4, author: 'Kamran Hüseynov', avatarInitial: 'K', type: 'text', content: 'Sinatra ilə bu axşam kofemi içirəm ☕ — "Fly Me to the Moon" əla seçimdir.', trackId: 11, likes: 45, comments: 3, time: 'Dünən' },
+  { id: 5, author: 'Sevinc Abbasova', avatarInitial: 'S', type: 'image', content: 'Bakı Bulvarında gün batımı və Piaf sədaları 🌅', trackId: 12, likes: 97, comments: 6, time: '2 gün əvvəl' },
+];
+
+// ---------- Estetik Axın (video-kartlar) ----------
 export const FEED_SEED = [
   { trackId: 1, desc: 'Qədim Bakı stüdiyasından bərpa olunmuş, məxmər səsli bir xatirə.', likes: 842, comments: [
     { id: 1, user: 'Nərmin.83', text: 'Bu səsi hər dinlədikcə nənəmin evini xatırlayıram 💛', time: '3s əvvəl' },
@@ -45,24 +79,26 @@ export const FEED_SEED = [
   ]},
   { trackId: 3, desc: 'Filarmoniya arxivindən nadir bir konsert qeydi.', likes: 631, comments: [
     { id: 1, user: 'Tural99', text: 'Elmira xanımın ifası hər dəfə tükürpərdici.', time: '2g əvvəl' },
-    { id: 2, user: 'Aysu_m', text: 'Bunu anama göndərdim, çox sevindi 🌷', time: '2g əvvəl' },
   ]},
-  { trackId: 4, desc: 'Maqomayevin unudulmaz konsert zalı ifası.', likes: 2310, comments: [
-    { id: 1, user: 'Kamran.h', text: 'Bu səviyyədə bir vokal daha yoxdur.', time: '6s əvvəl' },
-  ]},
-  { trackId: 5, desc: 'Yağışlı bir Bakı axşamı üçün ideal fon.', likes: 455, comments: [
-    { id: 1, user: 'Sevinc_A', text: 'Pəncərədən yağışa baxa-baxa dinləmək başqa aləmdir.', time: '4s əvvəl' },
-  ]},
-  { trackId: 6, desc: 'Payızın həzin notları ilə bəzənmiş nostalji parça.', likes: 389, comments: [
-    { id: 1, user: 'Orxan.n', text: 'Kamilə xanımın səsində xüsusi bir isti var.', time: '1g əvvəl' },
+  { trackId: 11, desc: 'Qızıl dövrün ən zamansız caz standartı.', likes: 512, comments: [
+    { id: 1, user: 'Vusal_m', text: 'Bu treki heç vaxt qulaqdan salmıram.', time: '4s əvvəl' },
   ]},
 ];
 
+// ---------- Əhval-ruhiyyə Sürətli Filtrləri (MeloMood AI) ----------
+export const MOOD_FILTERS = [
+  { id: 'baku-rain', label: 'Bakı Yağışı', mood: 'Rahatlıq' },
+  { id: 'night-drive', label: 'Gecə Sürüşü', mood: 'Gecə' },
+  { id: 'morning-coffee', label: 'Səhər Qəhvəsi', mood: 'Səhər' },
+  { id: 'nostalgia-80', label: 'Nostalji 80-lər', decade: '1980-lar' },
+];
+
+// ---------- MeloRadio Hədiyyələri ----------
 export const GIFTS = [
-  { id: 'grammophone', name: 'Qrammofon', icon: Disc3, value: 50, color: COLORS.gold },
-  { id: 'goldrecord', name: 'Qızıl Val', icon: Award, value: 100, color: '#D4AF37' },
-  { id: 'carpet', name: 'Milli Xalça', icon: Grid3x3, value: 200, color: COLORS.burgundy },
-  { id: 'glass', name: 'Armudu Stəkan', icon: Coffee, value: 20, color: COLORS.sage },
+  { id: 'grammophone', name: 'Qrammofon', value: 50, color: '#C5A059' },
+  { id: 'goldrecord', name: 'Qızıl Val', value: 100, color: '#D4AF37' },
+  { id: 'carpet', name: 'Milli Xalça', value: 200, color: '#6E2C2C' },
+  { id: 'glass', name: 'Armudu Stəkan', value: 20, color: '#7C8B6F' },
 ];
 
 export const GIFT_HISTORY_SEED = [
@@ -72,18 +108,12 @@ export const GIFT_HISTORY_SEED = [
   { id: 4, user: 'Ruslan07', gift: 'Qrammofon', time: '14 dəq əvvəl' },
 ];
 
-export const MOOD_FILTERS = [
-  { id: 'baku-rain', label: 'Bakı Yağışı', mood: 'Rahatlıq' },
-  { id: 'night-drive', label: 'Gecə Sürüşü', mood: 'Gecə' },
-  { id: 'morning-coffee', label: 'Səhər Qəhvəsi', mood: 'Səhər' },
-  { id: 'nostalgia-80', label: 'Nostalji 80-lər', decade: '1980-lar' },
-];
-
+// ---------- Profil ----------
 export const BADGES = [
-  { name: 'Retro Aşiqi', icon: Award, desc: '50+ retro parça dinləyib' },
-  { name: 'Erkən Üzv', icon: Star, desc: 'İlk 1000 istifadəçidən biri' },
-  { name: '100 Bəyənmə', icon: Heart, desc: '100 videoya ürək verib' },
-  { name: 'Səxavətli Dinləyici', icon: Gift, desc: 'MeloRadio-da hədiyyə göndərib' },
+  { name: 'Retro Aşiqi', desc: '50+ retro parça dinləyib' },
+  { name: 'Erkən Üzv', desc: 'İlk 1000 istifadəçidən biri' },
+  { name: '100 Bəyənmə', desc: '100 videoya ürək verib' },
+  { name: 'Səxavətli Dinləyici', desc: 'MeloRadio-da hədiyyə göndərib' },
 ];
 
 export const VINYL_COLLECTION_IDS = [1, 3, 5, 8, 4, 9];
@@ -93,10 +123,28 @@ export const LOVE_NOTES_SEED = [
   { id: 2, author: 'Aygün', text: 'Bakı Gecələri bizim ilk rəqsimizin mahnısı idi, unutmamışam 🌙', time: '3 gün əvvəl' },
 ];
 
-export const NEGATIVE_WORDS = ['axmaq', 'zibil', 'nifrət', 'pis adam', 'iyrənc', 'stupid', 'hate', 'ugly', 'terrible', 'idiot'];
+export const NEGATIVE_WORDS = ['axmaq', 'zibil', 'nifrət', 'iyrənc', 'stupid', 'hate', 'ugly', 'terrible', 'idiot'];
 
+// ---------- Köməkçi funksiyalar ----------
 export const formatTime = (s) => {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
   return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+};
+
+// ---------- Stil, Rəng və Şrift Sabitləri ----------
+export const FONT_IMPORT_URL = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap";
+
+export const displayFont = "'Playfair Display', serif";
+export const accentFont = "'Cormorant Garamond', serif";
+export const bodyFont = "'Plus Jakarta Sans', sans-serif";
+
+export const COLORS = {
+  bg: '#2A211F',
+  card: 'rgba(247,243,237,0.05)',
+  gold: '#C5A059',
+  goldLight: '#D8BD84',
+  text: '#F7F3ED',
+  textMuted: '#EFE7D8',
+  border: 'rgba(197,160,89,0.25)',
 };

@@ -1,86 +1,145 @@
-import React from 'react';
-import { ListMusic, Pause, Play } from 'lucide-react';
-import { VinylArt, SectionHeading, EmptyState } from '../components/Common';
-import { COLORS, BADGES, VINYL_COLLECTION_IDS, trackById, displayFont, bodyFont } from '../constants/data';
+import React, { useState } from 'react';
+import { User, Heart, Clock, Settings, Music, Disc, LogOut, Shield } from 'lucide-react';
+import { displayFont, bodyFont } from '../constants/data';
 
-export default function ProfileTab({ currentTrack, isPlaying, bookmarkedVideoIds, bookmarkedTrackIds, playTrack }) {
-  const savedIds = [...new Set([...bookmarkedVideoIds, ...bookmarkedTrackIds])];
-  const savedTracks = savedIds.map(trackById).filter(Boolean);
+export default function ProfileTab({ favorites = [], playHistory = [] }) {
+  const [activeSubTab, setActiveSubTab] = useState('favorites');
+
+  const userProfile = {
+    name: 'İstifadəçi',
+    email: 'user@melodaily.az',
+    joinedDate: 'İyul 2026',
+    favoriteGenre: 'Retro Estada'
+  };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 pt-6 pb-4">
-      <SectionHeading title="Profilim" />
-
-      <div className="rounded-2xl p-5 border flex items-center gap-4" style={{ borderColor: 'rgba(42,33,31,0.12)', background: `linear-gradient(120deg, ${COLORS.bronze}, #1c1614)` }}>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold shrink-0" style={{ background: COLORS.gold, color: COLORS.bronze }}>
-          NA
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8" style={{ fontFamily: bodyFont }}>
+      
+      {/* Header Profile Section */}
+      <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center gap-6">
+        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-500 to-amber-200 flex items-center justify-center text-amber-950 font-bold text-3xl shadow-lg">
+          <User className="w-12 h-12" />
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 style={{ ...displayFont, color: COLORS.cream, fontSize: 19 }}>Nərgiz Əliyeva</h3>
-          <p style={{ ...bodyFont, color: COLORS.goldSoft, fontSize: 12.5 }}>@nergiz_retro · Bakı, Azərbaycan</p>
-          {currentTrack && (
-            <p style={{ ...bodyFont, color: 'rgba(247,243,237,0.75)', fontSize: 12 }} className="mt-1.5 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: isPlaying ? COLORS.gold : 'rgba(197,160,89,0.4)' }} />
-              Hal-hazırda dinləyir: <span style={{ fontWeight: 600, color: COLORS.gold }}>{currentTrack.title}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-5">
-        <h4 style={{ ...bodyFont, fontWeight: 700, color: COLORS.bronze, fontSize: 14 }} className="mb-2.5">Rütbələr</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {BADGES.map((b) => {
-            const Icon = b.icon;
-            return (
-              <div key={b.name} className="rounded-xl p-3 border text-center" style={{ borderColor: 'rgba(42,33,31,0.12)', background: '#FFFDF9' }}>
-                <Icon size={22} color={COLORS.gold} className="mx-auto mb-1.5" />
-                <p style={{ ...bodyFont, fontWeight: 600, color: COLORS.bronze, fontSize: 12 }}>{b.name}</p>
-                <p style={{ ...bodyFont, color: COLORS.inkGold, fontSize: 10.5 }} className="mt-0.5">{b.desc}</p>
-              </div>
-            );
-          })}
+        <div className="text-center sm:text-left space-y-1">
+          <h2 className="text-2xl font-bold text-amber-100" style={{ fontFamily: displayFont }}>
+            {userProfile.name}
+          </h2>
+          <p className="text-sm text-amber-200/60">{userProfile.email}</p>
+          <div className="flex flex-wrap gap-2 pt-2 justify-center sm:justify-start text-xs text-amber-300/80">
+            <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+              Qoşuldu: {userProfile.joinedDate}
+            </span>
+            <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              {userProfile.favoriteGenre}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-5">
-        <h4 style={{ ...bodyFont, fontWeight: 700, color: COLORS.bronze, fontSize: 14 }} className="mb-2.5">Virtual Val (Vinyl) Kolleksiyası</h4>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {VINYL_COLLECTION_IDS.map((id) => {
-            const t = trackById(id);
-            return (
-              <div key={id} className="flex flex-col items-center gap-1.5">
-                <VinylArt colors={t.colors} spinning={false} size={54} />
-                <p style={{ ...bodyFont, color: COLORS.bronze, fontSize: 10.5, textAlign: 'center' }} className="truncate w-full">{t.title}</p>
-              </div>
-            );
-          })}
-        </div>
+      {/* Tabs Switcher */}
+      <div className="flex border-b border-white/10">
+        <button
+          onClick={() => setActiveSubTab('favorites')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeSubTab === 'favorites'
+              ? 'border-amber-500 text-amber-400'
+              : 'border-transparent text-amber-200/60 hover:text-amber-100'
+          }`}
+        >
+          <Heart className="w-4 h-4" />
+          Sevimlilər ({favorites.length})
+        </button>
+        <button
+          onClick={() => setActiveSubTab('history')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeSubTab === 'history'
+              ? 'border-amber-500 text-amber-400'
+              : 'border-transparent text-amber-200/60 hover:text-amber-100'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Tarixçə ({playHistory.length})
+        </button>
+        <button
+          onClick={() => setActiveSubTab('settings')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeSubTab === 'settings'
+              ? 'border-amber-500 text-amber-400'
+              : 'border-transparent text-amber-200/60 hover:text-amber-100'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Tənzimləmələr
+        </button>
       </div>
 
-      <div className="mt-5">
-        <h4 style={{ ...bodyFont, fontWeight: 700, color: COLORS.bronze, fontSize: 14 }} className="mb-2.5 flex items-center gap-1.5">
-          <ListMusic size={15} color={COLORS.gold} /> Saxlanılan Retro Parçalar
-        </h4>
-        {savedTracks.length === 0 ? (
-          <EmptyState text="Hələ heç nə saxlanmayıb — bəyəndiyin mahnıları bookmark et." />
-        ) : (
-          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgba(42,33,31,0.12)', background: '#FFFDF9' }}>
-            {savedTracks.map((t) => (
-              <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 border-b last:border-b-0" style={{ borderColor: 'rgba(42,33,31,0.08)' }}>
-                <VinylArt colors={t.colors} spinning={currentTrack?.id === t.id && isPlaying} size={34} />
-                <div className="flex-1 min-w-0">
-                  <p style={{ ...bodyFont, fontWeight: 600, color: COLORS.bronze, fontSize: 13 }} className="truncate">{t.title}</p>
-                  <p style={{ ...bodyFont, color: COLORS.inkGold, fontSize: 11 }} className="truncate">{t.singer}</p>
-                </div>
-                <button onClick={() => playTrack(t)} className="p-1.5 rounded-full" style={{ background: COLORS.bronze }}>
-                  {currentTrack?.id === t.id && isPlaying ? <Pause size={12} color={COLORS.cream} /> : <Play size={12} color={COLORS.cream} />}
-                </button>
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeSubTab === 'favorites' && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold text-amber-100" style={{ fontFamily: displayFont }}>
+              Sevimli Musiqiləriniz
+            </h3>
+            {favorites.length === 0 ? (
+              <p className="text-sm text-amber-200/50 py-4">Hələ ki sevimli musiqi əlavə edilməyib.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {favorites.map((track, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center gap-3">
+                    <Disc className="w-5 h-5 text-amber-400" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-amber-100">{track.title || 'Mahnı'}</h4>
+                      <p className="text-xs text-amber-200/60">{track.artist || 'Müğənni'}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+          </div>
+        )}
+
+        {activeSubTab === 'history' && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold text-amber-100" style={{ fontFamily: displayFont }}>
+              Son Dinlənilənlər
+            </h3>
+            {playHistory.length === 0 ? (
+              <p className="text-sm text-amber-200/50 py-4">Tarixçə boşdur.</p>
+            ) : (
+              <div className="space-y-2">
+                {playHistory.map((track, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-3">
+                      <Music className="w-4 h-4 text-amber-400" />
+                      <span className="text-amber-100">{track.title}</span>
+                    </div>
+                    <span className="text-xs text-amber-200/40">{track.time || 'Bu gün'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeSubTab === 'settings' && (
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+            <h3 className="text-lg font-bold text-amber-100" style={{ fontFamily: displayFont }}>
+              Hesab Parametrləri
+            </h3>
+            <div className="space-y-3 text-sm">
+              <button className="w-full text-left px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-amber-100 flex items-center gap-3 transition-colors">
+                <Shield className="w-4 h-4 text-amber-400" />
+                Məxfilik və Təhlükəsizlik
+              </button>
+              <button className="w-full text-left px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-3 transition-colors">
+                <LogOut className="w-4 h-4" />
+                Hesabdan Çıx
+              </button>
+            </div>
           </div>
         )}
       </div>
+
     </div>
   );
 }
