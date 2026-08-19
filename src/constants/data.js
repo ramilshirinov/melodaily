@@ -1,4 +1,4 @@
-import { Disc3, Award, Grid3x3, Coffee } from 'lucide-react';
+import { Star, Heart, Music, Radio, User, Users, Play, Pause, Search, Disc3, Disc, Award, Grid3x3, Coffee, Gift, MessageCircle, Share2, Compass, Home } from 'lucide-react';
 
 export const FONT_IMPORT_URL =
   'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap';
