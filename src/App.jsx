@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import PlayerBar from './components/PlayerBar';
+import HomeTab from './components/Hometab';
 import FeedTab from './tabs/FeedTab';
 import MusicTab from './tabs/MusicTab';
 import RadioTab from './tabs/RadioTab';
@@ -13,10 +14,26 @@ import {
 } from './constants/data';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('feed');
+  const [activeTab, setActiveTab] = useState('home');
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ singer: '', film: '', author: '', decade: '', mood: '' });
   const [showFilters, setShowFilters] = useState(false);
+
+  // User Profile & System Roles
+  const [currentUser] = useState({
+    id: 'u_admin_01',
+    name: 'Ramil Şirinov',
+    username: '@ramil_shirinov',
+    role: 'super_admin',
+    creatorLevel: 'vip_star',
+    topic: 'MeloDaily Qurucusu & Retro Kolleksioner',
+    isVerified: true,
+    ratingScore: 125000,
+    monetization: {
+      isEligible: true,
+      commissionRate: 0.20
+    }
+  });
 
   // Player State
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -177,20 +194,21 @@ export default function App() {
   };
   const toggleComments = (trackId) => setOpenComments((o) => ({ ...o, [trackId]: !o[trackId] }));
   const setDraft = (trackId, text) => setDrafts((d) => ({ ...d, [trackId]: text }));
+  
   const addComment = (trackId) => {
     const text = (drafts[trackId] || '').trim();
     if (!text) return;
     const lower = text.toLowerCase();
     const hit = NEGATIVE_WORDS.find((w) => lower.includes(w));
     if (hit) {
-      setWarnings((w) => ({ ...w, [trackId]: 'Şərhiniz pozitiv mühit siyasətimizə uyğun deyil — zəhmət olmasa yenidən yazın 💛' }));
+      setWarnings((w) => ({ ...w, [trackId]: 'Şərhiniz pozitiv mühit siyasətimizə uyğun deyil — zəhmət olmasa etik qaydalara riayət edin 💛' }));
       return;
     }
     setWarnings((w) => ({ ...w, [trackId]: null }));
     setVideos((vs) =>
       vs.map((v) =>
         v.trackId === trackId
-          ? { ...v, comments: [...v.comments, { id: Date.now(), user: 'Sən', text, time: 'indi' }] }
+          ? { ...v, comments: [...v.comments, { id: Date.now(), user: currentUser.name, text, time: 'indi' }] }
           : v
       )
     );
@@ -201,18 +219,21 @@ export default function App() {
     setBookmarkedTrackIds((ids) => (ids.includes(trackId) ? ids.filter((i) => i !== trackId) : [...ids, trackId]));
   };
 
-  /* Radio Actions */
+  /* Radio & Gift */
   const sendGift = (gift) => {
-    setGiftHistory((h) => [{ id: Date.now(), user: 'Sən', gift: gift.name, time: 'indi' }, ...h].slice(0, 12));
+    const commission = currentUser.monetization.commissionRate;
+    const netGiftValue = Math.round(gift.value * (1 - commission));
+    
+    setGiftHistory((h) => [{ id: Date.now(), user: currentUser.name, gift: gift.name, time: 'indi' }, ...h].slice(0, 12));
     setTipJar((t) => t + gift.value);
-    setWalletBalance((w) => w + Math.round(gift.value * 0.8));
+    setWalletBalance((w) => w + netGiftValue);
     setCurrentGiftAnim(gift);
     setTimeout(() => setCurrentGiftAnim(null), 1400);
   };
 
   /* Together Actions */
   const toggleSync = () => setSyncActive((s) => !s);
-  const addNote = (text) => setLoveNotes((n) => [...n, { id: Date.now(), author: 'Sən', text, time: 'indi' }]);
+  const addNote = (text) => setLoveNotes((n) => [...n, { id: Date.now(), author: currentUser.name, text, time: 'indi' }]);
   const addPhoto = (dataUrl) => setMemoryPhotos((p) => [...p, dataUrl]);
   const coupleTrack = trackById(10);
 
@@ -246,6 +267,13 @@ export default function App() {
       />
 
       <main className="pb-32">
+        {activeTab === 'home' && (
+          <HomeTab
+            onPlayTrack={playTrack}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+          />
+        )}
         {activeTab === 'feed' && (
           <FeedTab
             videos={videos}
@@ -307,6 +335,7 @@ export default function App() {
         )}
         {activeTab === 'profile' && (
           <ProfileTab
+            currentUser={currentUser}
             currentTrack={currentTrack}
             isPlaying={isPlaying}
             bookmarkedVideoIds={bookmarkedVideoIds}
