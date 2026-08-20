@@ -9,7 +9,7 @@ import TogetherTab from './tabs/TogetherTab';
 import ProfileTab from './tabs/ProfileTab';
 
 import {
-  FONT_IMPORT_URL, COLORS, TRACKS, FEED_SEED, GIFT_HISTORY_SEED,
+  FONT_IMPORT_URL, COLORS, TRACKS as INITIAL_TRACKS, FEED_SEED, GIFT_HISTORY_SEED,
   MOOD_FILTERS, LOVE_NOTES_SEED, NEGATIVE_WORDS, trackById, bodyFont
 } from './constants/data';
 
@@ -18,6 +18,9 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ singer: '', film: '', author: '', decade: '', mood: '' });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Musiqi siyahısı state-i (yeni dinamik mahnılar əlavə edilə bilsin)
+  const [tracks, setTracks] = useState(INITIAL_TRACKS || []);
 
   // User Profile
   const [currentUser] = useState({
@@ -100,12 +103,12 @@ export default function App() {
 
   /* Audio Effect Handling */
   const handleNext = useCallback(() => {
-    if (!currentTrack) return;
-    const idx = TRACKS.findIndex((t) => t.id === currentTrack.id);
-    const nextTrack = TRACKS[(idx + 1) % TRACKS.length];
+    if (!currentTrack || tracks.length === 0) return;
+    const idx = tracks.findIndex((t) => t.id === currentTrack.id);
+    const nextTrack = tracks[(idx + 1) % tracks.length];
     setCurrentTrack(nextTrack);
     setIsPlaying(true);
-  }, [currentTrack]);
+  }, [currentTrack, tracks]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -194,16 +197,16 @@ export default function App() {
 
   const togglePlay = () => {
     if (!currentTrack) {
-      playTrack(TRACKS[0]);
+      if (tracks.length > 0) playTrack(tracks[0]);
       return;
     }
     setIsPlaying((p) => !p);
   };
 
   const handlePrev = () => {
-    if (!currentTrack) return;
-    const idx = TRACKS.findIndex((t) => t.id === currentTrack.id);
-    const prevTrack = TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length];
+    if (!currentTrack || tracks.length === 0) return;
+    const idx = tracks.findIndex((t) => t.id === currentTrack.id);
+    const prevTrack = tracks[(idx - 1 + tracks.length) % tracks.length];
     setCurrentTrack(prevTrack);
     setProgress(0);
     setIsPlaying(true);
@@ -222,6 +225,25 @@ export default function App() {
   const startSleep = (mins) => { setSleepMinutesLeft(mins * 60); setSleepMenuOpen(false); };
   const cancelSleep = () => { setSleepMinutesLeft(0); setSleepMenuOpen(false); };
 
+  /* Yeni Musiqi Əlavə Etmə Handleri */
+  const handleAddNewTrack = (newTrackData) => {
+    const createdTrack = {
+      id: Date.now(),
+      title: newTrackData.title,
+      singer: newTrackData.singer,
+      film: newTrackData.film || 'Klassik',
+      category: 'Retro',
+      mood: 'Nostaljik',
+      decade: '1980-lər',
+      creator: currentUser.name,
+      cover: newTrackData.file ? URL.createObjectURL(newTrackData.file) : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+      audioUrl: newTrackData.file ? URL.createObjectURL(newTrackData.file) : null,
+      lyrics: "İstifadəçi tərəfindən yüklənən audio faylı."
+    };
+    setTracks((prev) => [createdTrack, ...prev]);
+    playTrack(createdTrack);
+  };
+
   /* Filters */
   const matchesFilter = useCallback(
     (track) => {
@@ -233,7 +255,7 @@ export default function App() {
       }
       if (filters.singer && !track.singer.includes(filters.singer)) return false;
       if (filters.film && track.film !== filters.film) return false;
-      if (filters.author && !track.creator.includes(filters.author)) return false;
+      if (filters.author && !track.creator?.includes(filters.author)) return false;
       if (filters.decade && track.decade !== filters.decade) return false;
       if (filters.mood && track.mood !== filters.mood) return false;
       return true;
@@ -244,7 +266,7 @@ export default function App() {
   const filteredByMood = (moodFilterId) => {
     const mf = MOOD_FILTERS.find((m) => m.id === moodFilterId);
     if (!mf) return [];
-    return TRACKS.filter((t) => (mf.mood ? t.mood === mf.mood : t.decade === mf.decade));
+    return tracks.filter((t) => (mf.mood ? t.mood === mf.mood : t.decade === mf.decade));
   };
 
   /* Feed Actions */
@@ -327,6 +349,7 @@ export default function App() {
         setFilters={setFilters}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
+        onAddNewTrack={handleAddNewTrack}
       />
 
       <main className="pb-32">
@@ -356,6 +379,9 @@ export default function App() {
         )}
         {activeTab === 'music' && (
           <MusicTab
+            tracks={tracks}
+            search={search}
+            setSearch={setSearch}
             matchesFilter={matchesFilter}
             playTrack={playTrack}
             currentTrack={currentTrack}

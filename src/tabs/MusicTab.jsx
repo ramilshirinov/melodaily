@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, Music, Disc, Sparkles, Search } from 'lucide-react';
+import { Play, Pause, Heart, Music, Disc, Sparkles, Search, Mic } from 'lucide-react';
 import { TRACKS, COLORS, displayFont, bodyFont } from '../constants/data';
 
 // Alt komponentlər - Təhlükəsiz üslublar
@@ -30,19 +30,53 @@ export default function MusicTab({
   isPlaying = false,
   playTrack = () => {},
   toggleFavorite = () => {},
-  favorites = []
+  favorites = [],
+  search = '',       // Header-dən gələn axtarış mətni
+  setSearch = () => {} // Header-dəki axtarışı yeniləyən funksiya
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Bütün');
+  const [isListening, setIsListening] = useState(false);
 
   const categories = ['Bütün', 'Retro', 'Klassik', 'Xalq', 'Caz'];
 
+  // Həm yerli `searchTerm`, həm də Header-dən gələn `search` istifadə olunur
+  const effectiveQuery = (search || searchTerm || '').toLowerCase();
+
   const filteredTracks = (TRACKS || []).filter((track) => {
-    const matchesSearch = track.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          track.singer?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = track.title?.toLowerCase().includes(effectiveQuery) ||
+                          track.singer?.toLowerCase().includes(effectiveQuery);
     const matchesCategory = selectedCategory === 'Bütün' || track.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    if (setSearch) setSearch(val);
+  };
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Brauzeriniz səsli axtarışı dəstəkləmir.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'az-AZ';
+    recognition.continuous = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchTerm(transcript);
+      if (setSearch) setSearch(transcript);
+    };
+
+    recognition.start();
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6" style={{ fontFamily: bodyFont }}>
@@ -54,10 +88,20 @@ export default function MusicTab({
           <input
             type="text"
             placeholder="Mahnı və ya müğənni axtar..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-black/40 text-amber-100 placeholder-amber-200/40 text-sm pl-9 pr-4 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-amber-500/50 transition-colors"
+            value={search || searchTerm}
+            onChange={handleInputChange}
+            className="w-full bg-black/40 text-amber-100 placeholder-amber-200/40 text-sm pl-9 pr-9 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-amber-500/50 transition-colors"
           />
+          <button
+            type="button"
+            onClick={handleVoiceSearch}
+            className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors ${
+              isListening ? 'text-red-400 animate-pulse bg-red-500/20' : 'text-amber-400/70 hover:text-amber-300'
+            }`}
+            title="Səslə axtar"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">

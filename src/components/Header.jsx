@@ -35,24 +35,13 @@ export default function Header({
     recognition.onend = () => setIsListening(false);
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      // Səslə deyildikdə state-i yeniləyirik
       setSearch(transcript);
-      
-      // Əgər axtarış təbinə avtomatik keçmək istəyirsinizsə:
       if (activeTab !== 'music' && activeTab !== 'feed') {
         setActiveTab('music');
       }
     };
 
     recognition.start();
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Axtarış formasını submit etdikdə musiqi və ya lenta bölməsinə yönləndirə bilərsiniz
-    if (search.trim() && activeTab !== 'music' && activeTab !== 'feed') {
-      setActiveTab('music');
-    }
   };
 
   const handleAddSubmit = (e) => {
@@ -80,7 +69,6 @@ export default function Header({
         {/* Logo & Slogan */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-            {/* Visual MeloDaily Loqosu */}
             <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#C5A059]/40 bg-[#2A211F] shadow-md flex items-center justify-center shrink-0">
               <img 
                 src="/logo.jpg?v=2" 
@@ -134,28 +122,28 @@ export default function Header({
           ))}
         </nav>
 
-        {/* Axtarış, Səsli Axtarış & Post Əlavə Et */}
+        {/* Axtarış xanası + Səsli Axtarış Düyməsi */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <form onSubmit={handleSearchSubmit} className="relative flex-1 md:w-56">
+          <div className="relative flex-1 md:w-60">
             <Search size={16} className="absolute left-3 top-2.5 text-stone-400" />
             <input
               type="text"
-              placeholder="Mahnı, profil, video axtar..."
+              placeholder="Mahnı və ya müğənni axtar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl pl-9 pr-8 py-1.5 text-xs text-[#F7F3ED] placeholder-stone-400 focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl pl-9 pr-9 py-1.5 text-xs text-[#F7F3ED] placeholder-stone-400 focus:outline-none focus:border-[#C5A059]"
             />
             <button
               type="button"
               onClick={handleVoiceSearch}
-              className={`absolute right-2 top-2 transition ${
-                isListening ? 'text-red-400 animate-pulse' : 'text-[#D8BD84] hover:text-white'
+              className={`absolute right-2.5 top-2 transition p-0.5 rounded-md ${
+                isListening ? 'text-red-500 animate-pulse bg-red-500/20' : 'text-[#C5A059] hover:text-white'
               }`}
-              title="Səsli Axtarış"
+              title="Səslə axtar"
             >
               <Mic size={15} />
             </button>
-          </form>
+          </div>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -175,7 +163,7 @@ export default function Header({
         </div>
       </div>
 
-      {/* Post / Musiqi Əlavə Et Modal */}
+      {/* Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-[#2A211F] border border-[#C5A059]/40 rounded-2xl max-w-md w-full p-6 text-[#F7F3ED] shadow-2xl relative">
@@ -224,7 +212,6 @@ export default function Header({
                 />
               </div>
 
-              {/* Fayl Yükləmə Sahəsi */}
               <div>
                 <label className="block text-xs text-[#D8BD84] mb-1 flex items-center gap-1">
                   <Upload size={13} />
