@@ -8,6 +8,8 @@ import RadioTab from './tabs/RadioTab';
 import TogetherTab from './tabs/TogetherTab';
 import ProfileTab from './tabs/ProfileTab';
 
+import { supabase } from './lib/supabase'; // Supabase bağlantısı
+
 import {
   FONT_IMPORT_URL, COLORS, TRACKS as INITIAL_TRACKS, FEED_SEED, GIFT_HISTORY_SEED,
   MOOD_FILTERS, LOVE_NOTES_SEED, NEGATIVE_WORDS, trackById, bodyFont
@@ -19,8 +21,31 @@ export default function App() {
   const [filters, setFilters] = useState({ singer: '', film: '', author: '', decade: '', mood: '' });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Musiqi siyahısı state-i (yeni dinamik mahnılar əlavə edilə bilsin)
+  // Musiqi siyahısı state-i
   const [tracks, setTracks] = useState(INITIAL_TRACKS || []);
+
+  // --- SUPABASE-DƏN MAHNILARI ÇƏKMƏK ---
+  useEffect(() => {
+    const fetchTracksFromSupabase = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('tracks')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) {
+          console.error('Supabase-dən məlumat çəkilərkən xəta:', error.message);
+        } else if (data && data.length > 0) {
+          // Baza boş deyilsə, local seed ilə birləşdir və ya birbaşa bazadan istifadə et
+          setTracks(data);
+        }
+      } catch (err) {
+        console.error('Bağlantı xətası:', err);
+      }
+    };
+
+    fetchTracksFromSupabase();
+  }, []);
 
   // User Profile
   const [currentUser] = useState({
@@ -35,7 +60,7 @@ export default function App() {
     monetization: { isEligible: true, commissionRate: 0.20 }
   });
 
-  // --- 1. LOCALSTORAGE İNTEQRASİYASI ---
+  // LocalStorage
   const [bookmarkedTrackIds, setBookmarkedTrackIds] = useState(() => {
     const saved = localStorage.getItem('melodaily_bookmarks');
     return saved ? JSON.parse(saved) : [2, 7];
@@ -63,7 +88,7 @@ export default function App() {
     localStorage.setItem('melodaily_tipjar', JSON.stringify(tipJar));
   }, [tipJar]);
 
-  // --- 2. REAL AUDIO ENGINE (HTML5 <audio>) ---
+  // Real Audio Engine
   const audioRef = useRef(new Audio());
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -75,7 +100,6 @@ export default function App() {
   const [sleepMinutesLeft, setSleepMinutesLeft] = useState(0);
   const [sleepMenuOpen, setSleepMenuOpen] = useState(false);
 
-  // 3. Mahnı Sözləri Modalı
   const [showLyricsModal, setShowLyricsModal] = useState(false);
 
   // Feed State
@@ -101,7 +125,6 @@ export default function App() {
   const sleepInterval = useRef(null);
   const listenerInterval = useRef(null);
 
-  /* Audio Effect Handling */
   const handleNext = useCallback(() => {
     if (!currentTrack || tracks.length === 0) return;
     const idx = tracks.findIndex((t) => t.id === currentTrack.id);
@@ -129,9 +152,10 @@ export default function App() {
   }, [currentTrack, handleNext]);
 
   useEffect(() => {
-    if (currentTrack?.audioUrl) {
-      if (audioRef.current.src !== currentTrack.audioUrl) {
-        audioRef.current.src = currentTrack.audioUrl;
+    if (currentTrack?.audio_url || currentTrack?.audioUrl) {
+      const url = currentTrack.audio_url || currentTrack.audioUrl;
+      if (audioRef.current.src !== url) {
+        audioRef.current.src = url;
       }
       if (isPlaying) {
         audioRef.current.play().catch(() => setIsPlaying(false));
@@ -139,7 +163,6 @@ export default function App() {
         audioRef.current.pause();
       }
     } else if (isPlaying && currentTrack) {
-      // Audio URL yoxdursa simulyasiya taymeri (Fallback)
       const interval = setInterval(() => {
         setProgress((p) => {
           if (p >= (currentTrack.duration || 225)) {
@@ -225,10 +248,9 @@ export default function App() {
   const startSleep = (mins) => { setSleepMinutesLeft(mins * 60); setSleepMenuOpen(false); };
   const cancelSleep = () => { setSleepMinutesLeft(0); setSleepMenuOpen(false); };
 
-  /* Yeni Musiqi Əlavə Etmə Handleri */
-  const handleAddNewTrack = (newTrackData) => {
-    const createdTrack = {
-      id: Date.now(),
+  // --- SUPABASE-Ə YENİ MAHNINI YAZMAQ ---
+  const handleAddNewTrack = async (newTrackData) => {
+    const trackPayload = {
       title: newTrackData.title,
       singer: newTrackData.singer,
       film: newTrackData.film || 'Klassik',
@@ -236,12 +258,22 @@ export default function App() {
       mood: 'Nostaljik',
       decade: '1980-lər',
       creator: currentUser.name,
-      cover: newTrackData.file ? URL.createObjectURL(newTrackData.file) : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
-      audioUrl: newTrackData.file ? URL.createObjectURL(newTrackData.file) : null,
+      cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
       lyrics: "İstifadəçi tərəfindən yüklənən audio faylı."
     };
-    setTracks((prev) => [createdTrack, ...prev]);
-    playTrack(createdTrack);
+
+    // Bazaya yazırıq
+    const { data, error } = await supabase
+      .from('tracks')
+      .insert([trackPayload])
+      .select();
+
+    if (error) {
+      console.error('Supabase-ə yazılarkən xəta:', error.message);
+    } else if (data && data.length > 0) {
+      setTracks((prev) => [data[0], ...prev]);
+      playTrack(data[0]);
+    }
   };
 
   /* Filters */
@@ -253,7 +285,7 @@ export default function App() {
         const hay = `${track.title} ${track.singer} ${track.film} ${track.mood} ${track.decade}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
-      if (filters.singer && !track.singer.includes(filters.singer)) return false;
+      if (filters.singer && !track.singer?.includes(filters.singer)) return false;
       if (filters.film && track.film !== filters.film) return false;
       if (filters.author && !track.creator?.includes(filters.author)) return false;
       if (filters.decade && track.decade !== filters.decade) return false;
@@ -299,12 +331,10 @@ export default function App() {
     setDrafts((d) => ({ ...d, [trackId]: '' }));
   };
 
-  /* Sevimlilər Toggle */
   const toggleBookmarkTrack = (trackId) => {
     setBookmarkedTrackIds((ids) => (ids.includes(trackId) ? ids.filter((i) => i !== trackId) : [...ids, trackId]));
   };
 
-  // --- 4. CANLI HƏDİYYƏ & BALANS İNTEQRASİYASI ---
   const sendGift = (gift) => {
     const commission = currentUser.monetization.commissionRate;
     const netGiftValue = Math.round(gift.value * (1 - commission));
@@ -316,7 +346,6 @@ export default function App() {
     setTimeout(() => setCurrentGiftAnim(null), 1400);
   };
 
-  /* Together Actions */
   const toggleSync = () => setSyncActive((s) => !s);
   const addNote = (text) => setLoveNotes((n) => [...n, { id: Date.now(), author: currentUser.name, text, time: 'indi' }]);
   const addPhoto = (dataUrl) => setMemoryPhotos((p) => [...p, dataUrl]);
@@ -436,7 +465,6 @@ export default function App() {
         )}
       </main>
 
-      {/* --- 3. MAHNININ SÖZLƏRİ (LYRICS) MODALI --- */}
       {showLyricsModal && currentTrack && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-[#2A211F] border border-[#C5A059]/40 rounded-2xl max-w-lg w-full p-6 text-[#F7F3ED] shadow-2xl relative max-h-[80vh] flex flex-col">
