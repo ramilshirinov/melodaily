@@ -25,6 +25,19 @@ export default function PlayerBar({
   const trackId = currentTrack?.id;
   const isSaved = savedTrackIds.includes(trackId);
 
+  // Yuxu Taymeri (Sleep Timer) Məntiqi
+  useEffect(() => {
+    if (!timerMinutes) return;
+
+    const timer = setTimeout(() => {
+      if (setIsPlaying) setIsPlaying(false);
+      setTimerMinutes(null);
+      alert(`${timerMinutes} dəqiqəlik yuxu taymeri tamamlandı. Musiqi dayandırıldı.`);
+    }, timerMinutes * 60 * 1000);
+
+    return () => clearTimeout(timer);
+  }, [timerMinutes, setIsPlaying]);
+
   const formatTime = (secs) => {
     if (!secs || isNaN(secs)) return '0:00';
     const m = Math.floor(secs / 60);
@@ -44,10 +57,17 @@ export default function PlayerBar({
         {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər & Lyrics */}
         <div className="flex items-center gap-3 w-full md:w-1/3">
           <div 
-            className="w-11 h-11 rounded-lg flex items-center justify-center font-serif text-lg border shrink-0"
-            style={{ background: 'rgba(197,160,89,0.15)', borderColor: 'rgba(197,160,89,0.3)', color: '#C5A059' }}
+            className="w-11 h-11 rounded-lg border overflow-hidden shrink-0 flex items-center justify-center"
+            style={{ background: '#2A211F', borderColor: 'rgba(197,160,89,0.3)' }}
           >
-            🎵
+            <img 
+              src="/logo.jpg?v=2" 
+              alt="MeloDaily Logo" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
           </div>
           <div className="overflow-hidden min-w-0 flex-1">
             <h4 className="font-medium text-sm truncate" style={{ color: '#F7F3ED' }}>
@@ -128,11 +148,16 @@ export default function PlayerBar({
         <div className="flex items-center justify-end gap-3 w-full md:w-1/3 relative">
           <button 
             onClick={() => setShowTimerModal(!showTimerModal)} 
-            className="p-2 rounded-lg transition"
+            className="p-2 rounded-lg transition relative"
             style={{ color: timerMinutes ? '#C5A059' : '#D8BD84', background: timerMinutes ? 'rgba(197,160,89,0.15)' : 'transparent' }}
             title="Sleep Timer"
           >
             <Clock size={18} />
+            {timerMinutes && (
+              <span className="absolute -top-1 -right-1 text-[9px] font-bold bg-[#C5A059] text-[#2A211F] px-1 rounded-full">
+                {timerMinutes}m
+              </span>
+            )}
           </button>
 
           <div className="flex items-center gap-2">

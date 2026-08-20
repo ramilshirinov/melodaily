@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Mic, PlusCircle, Filter } from 'lucide-react';
+import { Search, Mic, PlusCircle, Filter, Upload } from 'lucide-react';
 
 export default function Header({
   activeTab,
@@ -18,6 +18,7 @@ export default function Header({
   const [newTitle, setNewTitle] = useState('');
   const [newSinger, setNewSinger] = useState('');
   const [newFilm, setNewFilm] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleVoiceSearch = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -44,11 +45,17 @@ export default function Header({
     e.preventDefault();
     if (!newTitle || !newSinger) return;
     if (onAddNewTrack) {
-      onAddNewTrack({ title: newTitle, singer: newSinger, film: newFilm || 'Klassik' });
+      onAddNewTrack({ 
+        title: newTitle, 
+        singer: newSinger, 
+        film: newFilm || 'Klassik',
+        file: selectedFile 
+      });
     }
     setNewTitle('');
     setNewSinger('');
     setNewFilm('');
+    setSelectedFile(null);
     setShowAddModal(false);
   };
 
@@ -59,7 +66,7 @@ export default function Header({
         {/* Logo & Slogan */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-            {/* Yeni Visual MeloDaily Loqosu */}
+            {/* Visual MeloDaily Loqosu */}
             <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#C5A059]/40 bg-[#2A211F] shadow-md flex items-center justify-center shrink-0">
               <img 
                 src="/logo.jpg?v=2" 
@@ -89,7 +96,7 @@ export default function Header({
           </button>
         </div>
 
-        {/* Tab Menyu (TikTok + Instagram + Spotify Hibrid) */}
+        {/* Tab Menyu */}
         <nav className="flex items-center gap-1 bg-[#362A27] p-1 rounded-xl border border-stone-800 text-xs font-medium overflow-x-auto max-w-full">
           {[
             { id: 'home', label: 'Əsas' },
@@ -200,6 +207,25 @@ export default function Header({
                   onChange={(e) => setNewFilm(e.target.value)}
                   className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl p-2.5 text-xs text-[#F7F3ED] focus:outline-none focus:border-[#C5A059]"
                 />
+              </div>
+
+              {/* Fayl Yükləmə Sahəsi */}
+              <div>
+                <label className="block text-xs text-[#D8BD84] mb-1 flex items-center gap-1">
+                  <Upload size={13} />
+                  <span>Audio və ya Video Faylı Seçin</span>
+                </label>
+                <input
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl p-2 text-xs text-[#F7F3ED] file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#C5A059] file:text-[#2A211F] hover:file:bg-[#D8BD84] cursor-pointer"
+                />
+                {selectedFile && (
+                  <p className="text-[11px] text-[#C5A059] mt-1 truncate">
+                    Seçildi: {selectedFile.name}
+                  </p>
+                )}
               </div>
 
               <div className="pt-2 flex justify-end gap-2">

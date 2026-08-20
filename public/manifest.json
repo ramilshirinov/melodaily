@@ -1,15 +1,16 @@
 {
   "short_name": "MeloDaily",
-  "name": "MeloDaily - Milli Sosial & Musiqi Platforması",
+  "name": "MeloDaily — Milli Sosial & Musiqi Platforması",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/logo.jpg?v=2",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#2A211F",
   "theme_color": "#2A211F",
-  "background_color": "#2A211F"
+  "display": "standalone",
+  "orientation": "portrait"
 }
