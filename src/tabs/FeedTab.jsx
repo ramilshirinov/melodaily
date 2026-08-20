@@ -17,12 +17,11 @@ export default function FeedTab({
   warnings
 }) {
   const [copiedId, setCopiedId] = useState(null);
-  const [commentLikes, setCommentLikes] = useState({}); // Rəy bəyənmələri
-  const [reposts, setReposts] = useState({}); // Təkrar paylaşmalar { trackId: { count, reposted } }
+  const [commentLikes, setCommentLikes] = useState({});
+  const [reposts, setReposts] = useState({});
 
   const filteredVideos = videos.filter((v) => !matchesFilter || matchesFilter(v));
 
-  // Təkrar paylaş (Repost) funksiyası
   const toggleRepost = (trackId, initialCount = 0) => {
     setReposts((prev) => {
       const current = prev[trackId] || { count: initialCount, reposted: false };
@@ -36,11 +35,9 @@ export default function FeedTab({
     });
   };
 
-  // Nativ Paylaşma və ya Link Kopyalama
   const handleShare = async (trackId, title) => {
     const url = window.location.href;
     
-    // Əgər cihaz Native Share API dəstəkləyirsə (Mobil menyunu açır)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -50,11 +47,10 @@ export default function FeedTab({
         });
         return;
       } catch (err) {
-        // İstifadəçi paylaşmanı ləğv etdikdə xəta verməməsi üçün
+        // Share modal ləğv ediləndə
       }
     }
 
-    // Əgər Native Share dəstəklənmirsə, linki kopyalayır
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
       setCopiedId(trackId);
@@ -62,7 +58,6 @@ export default function FeedTab({
     }
   };
 
-  // Rəyi kopyalayıb paylaşmaq
   const handleShareComment = (commentText, commentId) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(commentText);
@@ -71,7 +66,6 @@ export default function FeedTab({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Rəyi bəyənmək
   const toggleCommentLike = (commentId, initialLikes = 0) => {
     setCommentLikes((prev) => {
       const current = prev[commentId] || { count: initialLikes, liked: false };
@@ -85,7 +79,6 @@ export default function FeedTab({
     });
   };
 
-  // Rəyə cavab verdikdə tagging
   const handleReplyClick = (trackId, username) => {
     const currentText = drafts[trackId] || '';
     const mentionText = `@${username} `;
@@ -115,11 +108,20 @@ export default function FeedTab({
               key={item.id || item.trackId}
               className="bg-[#362A27] border border-[#C5A059]/30 rounded-2xl overflow-hidden shadow-xl transition hover:border-[#C5A059]/60"
             >
-              {/* Başlıq */}
+              {/* Başlıq və Əvvəlki Loqo (logo.png) */}
               <div className="p-4 flex items-center justify-between border-b border-stone-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/40 flex items-center justify-center text-lg font-serif text-[#C5A059]">
-                    🎬
+                  <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/40 overflow-hidden flex items-center justify-center shrink-0">
+                    <img
+                      src="/logo.png"
+                      alt="MeloDaily"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        e.target.parentNode.innerText = '📻';
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-[#F7F3ED]">{item.title}</h3>
