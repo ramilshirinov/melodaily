@@ -108,18 +108,16 @@ export default function FeedTab({
               key={item.id || item.trackId}
               className="bg-[#362A27] border border-[#C5A059]/30 rounded-2xl overflow-hidden shadow-xl transition hover:border-[#C5A059]/60"
             >
-              {/* Başlıq və Loqo */}
+              {/* Başlıq və MeloDaily Loqosu */}
               <div className="p-4 flex items-center justify-between border-b border-stone-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/40 overflow-hidden flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-stone-900 border border-[#C5A059]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
                     <img
-                      src="/logo.jpg"
+                      src="/logo.jpg?v=1"
                       alt="MeloDaily"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.style.display = 'none';
-                        e.target.parentNode.innerText = '📻';
+                        console.error("Loqo tapılmadı:", e.target.src);
                       }}
                     />
                   </div>
