@@ -58,9 +58,17 @@ export default function Header({
         
         {/* Logo & Slogan */}
         <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="w-9 h-9 rounded-full bg-[#C5A059] flex items-center justify-center text-[#2A211F] font-bold shadow-md">
-              🎷
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+            {/* Yeni Visual MeloDaily Loqosu */}
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#C5A059]/40 bg-[#2A211F] shadow-md flex items-center justify-center shrink-0">
+              <img 
+                src="/logo.jpg?v=2" 
+                alt="MeloDaily Logo" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error("Loqo yüklənmədi:", e.target.src);
+                }}
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-serif text-xl font-bold tracking-wide text-[#F7F3ED] leading-none">
@@ -82,7 +90,7 @@ export default function Header({
         </div>
 
         {/* Tab Menyu (TikTok + Instagram + Spotify Hibrid) */}
-        <nav className="flex items-center gap-1 bg-[#362A27] p-1 rounded-xl border border-stone-800 text-xs font-medium">
+        <nav className="flex items-center gap-1 bg-[#362A27] p-1 rounded-xl border border-stone-800 text-xs font-medium overflow-x-auto max-w-full">
           {[
             { id: 'home', label: 'Əsas' },
             { id: 'feed', label: 'Lenta (Sosial)' },
@@ -94,7 +102,7 @@ export default function Header({
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`px-3 py-1.5 rounded-lg transition ${
+              className={`px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                 activeTab === t.id
                   ? 'bg-[#C5A059] text-[#2A211F] font-bold shadow'
                   : 'text-[#D8BD84] hover:text-white'
@@ -137,7 +145,7 @@ export default function Header({
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#C5A059] text-[#2A211F] rounded-xl text-xs font-semibold hover:bg-[#D8BD84] transition"
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#C5A059] text-[#2A211F] rounded-xl text-xs font-semibold hover:bg-[#D8BD84] transition shrink-0"
           >
             <PlusCircle size={16} />
             <span>Paylaşım Et</span>
