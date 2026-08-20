@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Clock, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Clock, Heart, Bookmark } from 'lucide-react';
 
-export default function PlayerBar({ currentTrack, isPlaying, setIsPlaying }) {
+export default function PlayerBar({ 
+  currentTrack, 
+  isPlaying, 
+  setIsPlaying, 
+  savedTrackIds = [], 
+  toggleSaveTrack 
+}) {
   const [progress, setProgress] = useState(30);
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showTimerModal, setShowTimerModal] = useState(false);
   const [timerMinutes, setTimerMinutes] = useState(null);
+
+  // Cari mahnının sevimlilərdə olub-olmadığını yoxlayırıq
+  const trackId = currentTrack?.id || currentTrack?.title;
+  const isSaved = savedTrackIds.includes(trackId);
 
   // Sleep Timer Alqoritmi
   useEffect(() => {
@@ -30,15 +40,15 @@ export default function PlayerBar({ currentTrack, isPlaying, setIsPlaying }) {
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
-        {/* Sol: Mahnı haqqında */}
-        <div className="flex items-center gap-3 w-full md:w-1/4">
+        {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər düymələri */}
+        <div className="flex items-center gap-3 w-full md:w-1/3">
           <div 
             className="w-11 h-11 rounded-lg flex items-center justify-center font-serif text-lg border shrink-0"
             style={{ background: 'rgba(197,160,89,0.15)', borderColor: 'rgba(197,160,89,0.3)', color: '#C5A059' }}
           >
             🎵
           </div>
-          <div className="overflow-hidden min-w-0">
+          <div className="overflow-hidden min-w-0 flex-1">
             <h4 className="font-medium text-sm truncate" style={{ color: '#F7F3ED' }}>
               {currentTrack.title || currentTrack.name || 'Mahnı Seçilməyib'}
             </h4>
@@ -46,17 +56,33 @@ export default function PlayerBar({ currentTrack, isPlaying, setIsPlaying }) {
               {currentTrack.singer || currentTrack.artist || 'Müğənni'}
             </p>
           </div>
-          <button 
-            onClick={() => setIsLiked(!isLiked)} 
-            className="ml-auto transition p-1.5"
-            style={{ color: isLiked ? '#C5A059' : '#D8BD84' }}
-          >
-            <Heart size={18} className={isLiked ? 'fill-[#C5A059]' : ''} />
-          </button>
+
+          {/* Düymələr: Sosial Bəyənmə (Ürək) və Profildə Sevimlilər (Əlfəcin) */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Ürək - Sosial Bəyənmə */}
+            <button 
+              onClick={() => setIsLiked(!isLiked)} 
+              className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
+              style={{ color: isLiked ? '#E53E3E' : '#D8BD84' }}
+              title={isLiked ? "Bəyənməni geri götür" : "Bəyən"}
+            >
+              <Heart size={18} className={isLiked ? 'fill-[#E53E3E]' : ''} />
+            </button>
+
+            {/* Əlfəcin - Profil Sevimlilərinə Əlavə Et */}
+            <button 
+              onClick={() => toggleSaveTrack && toggleSaveTrack(trackId)} 
+              className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
+              style={{ color: isSaved ? '#C5A059' : '#D8BD84' }}
+              title={isSaved ? "Sevimlilərdən çıxar" : "Sevimlilərə əlavə et"}
+            >
+              <Bookmark size={18} className={isSaved ? 'fill-[#C5A059]' : ''} />
+            </button>
+          </div>
         </div>
 
         {/* Orta: Pleyer İdarəetməsi */}
-        <div className="flex flex-col items-center gap-1.5 w-full md:w-2/4">
+        <div className="flex flex-col items-center gap-1.5 w-full md:w-1/3">
           <div className="flex items-center gap-4">
             <button className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
               <SkipBack size={18} />
@@ -89,7 +115,7 @@ export default function PlayerBar({ currentTrack, isPlaying, setIsPlaying }) {
         </div>
 
         {/* Sağ: Səs və Sleep Timer */}
-        <div className="flex items-center justify-end gap-3 w-full md:w-1/4 relative">
+        <div className="flex items-center justify-end gap-3 w-full md:w-1/3 relative">
           <button 
             onClick={() => setShowTimerModal(!showTimerModal)} 
             className="p-2 rounded-lg transition"

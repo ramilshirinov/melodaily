@@ -53,7 +53,7 @@ export default function App() {
   const [drafts, setDrafts] = useState({});
   const [warnings, setWarnings] = useState({});
 
-  // Bookmarks
+  // Bookmarks / Sevimlilər State (Pleyer və Profil üçün sinxron idarəetmə)
   const [bookmarkedTrackIds, setBookmarkedTrackIds] = useState([2, 7]);
 
   // Radio State
@@ -215,6 +215,7 @@ export default function App() {
     setDrafts((d) => ({ ...d, [trackId]: '' }));
   };
 
+  /* Sevimlilərə Əlavə Et / Çıxar Funksiyası */
   const toggleBookmarkTrack = (trackId) => {
     setBookmarkedTrackIds((ids) => (ids.includes(trackId) ? ids.filter((i) => i !== trackId) : [...ids, trackId]));
   };
@@ -340,6 +341,7 @@ export default function App() {
             isPlaying={isPlaying}
             bookmarkedVideoIds={bookmarkedVideoIds}
             bookmarkedTrackIds={bookmarkedTrackIds}
+            toggleBookmarkTrack={toggleBookmarkTrack}
             playTrack={playTrack}
           />
         )}
@@ -349,6 +351,7 @@ export default function App() {
         currentTrack={currentTrack}
         isPlaying={isPlaying}
         togglePlay={togglePlay}
+        setIsPlaying={setIsPlaying}
         progress={progress}
         seek={seek}
         volume={volume}
@@ -364,6 +367,8 @@ export default function App() {
         setSleepMenuOpen={setSleepMenuOpen}
         startSleep={startSleep}
         cancelSleep={cancelSleep}
+        savedTrackIds={bookmarkedTrackIds}
+        toggleSaveTrack={toggleBookmarkTrack}
       />
     </div>
   );
