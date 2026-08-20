@@ -20,7 +20,7 @@ export default function HomeTab({ onPlayTrack, currentTrack, isPlaying }) {
       {/* Vahid Qarışıq Axın (Feed) */}
       <div className="space-y-6">
         <h2 className="text-xl font-semibold flex items-center gap-2 text-[#C5A059]">
-          <Sparkles size={18} /> Öne Çıxan Paylaşımlar və Musiqilər
+          <Sparkles size={18} /> Önə Çıxan Paylaşımlar və Musiqilər
         </h2>
 
         {/* 1. Musiqi Kartları */}
