@@ -1,116 +1,148 @@
-import React from 'react';
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  Volume2, 
-  VolumeX, 
-  Heart, 
-  Radio 
-} from 'lucide-react';
-import { displayFont, bodyFont } from '../constants/data';
+import React, { useState, useEffect } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Clock, Heart } from 'lucide-react';
 
-export default function PlayerBar({
-  currentTrack = null,
-  isPlaying = false,
-  onPlayPause = () => {},
-  onNext = () => {},
-  onPrev = () => {},
-  toggleFavorite = () => {},
-  favorites = [],
-  volume = 80,
-  setVolume = () => {},
-  isMuted = false,
-  toggleMute = () => {}
-}) {
+export default function PlayerBar({ currentTrack, isPlaying, setIsPlaying }) {
+  const [progress, setProgress] = useState(30);
+  const [volume, setVolume] = useState(80);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showTimerModal, setShowTimerModal] = useState(false);
+  const [timerMinutes, setTimerMinutes] = useState(null);
+
+  // Sleep Timer Alqoritmi
+  useEffect(() => {
+    if (!timerMinutes) return;
+    const timer = setTimeout(() => {
+      setIsPlaying(false);
+      setTimerMinutes(null);
+      alert('MeloDaily Sleep Timer: Musiqi dayandırıldı 🌙');
+    }, timerMinutes * 60 * 1000);
+
+    return () => clearTimeout(timer);
+  }, [timerMinutes, setIsPlaying]);
+
   if (!currentTrack) return null;
-
-  const isFav = favorites.some((f) => f.id === currentTrack.id);
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-lg border-t border-white/10 px-4 py-3 z-40 text-amber-100"
-      style={{ fontFamily: bodyFont }}
+      className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 border-t transition-all"
+      style={{ background: 'rgba(42,33,31,0.97)', borderColor: 'rgba(197,160,89,0.25)', backdropFilter: 'blur(8px)' }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
-        {/* Current Track Info */}
-        <div className="flex items-center gap-3 min-w-0 w-1/4">
-          <img
-            src={currentTrack.cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150'}
-            alt={currentTrack.title}
-            className="w-12 h-12 rounded-lg object-cover border border-white/10 flex-shrink-0"
-          />
-          <div className="min-w-0">
-            <h4 
-              className="text-sm font-bold text-amber-100 truncate"
-              style={{ fontFamily: displayFont }}
-            >
-              {currentTrack.title}
+        {/* Sol: Mahnı haqqında */}
+        <div className="flex items-center gap-3 w-full md:w-1/4">
+          <div 
+            className="w-11 h-11 rounded-lg flex items-center justify-center font-serif text-lg border shrink-0"
+            style={{ background: 'rgba(197,160,89,0.15)', borderColor: 'rgba(197,160,89,0.3)', color: '#C5A059' }}
+          >
+            🎵
+          </div>
+          <div className="overflow-hidden min-w-0">
+            <h4 className="font-medium text-sm truncate" style={{ color: '#F7F3ED' }}>
+              {currentTrack.title || currentTrack.name || 'Mahnı Seçilməyib'}
             </h4>
-            <p className="text-xs text-amber-200/60 truncate">{currentTrack.singer}</p>
+            <p className="text-xs truncate" style={{ color: '#D8BD84' }}>
+              {currentTrack.singer || currentTrack.artist || 'Müğənni'}
+            </p>
           </div>
-          <button
-            onClick={() => toggleFavorite(currentTrack)}
-            className={`p-1.5 rounded-full transition-colors ${
-              isFav ? 'text-red-400' : 'text-amber-200/40 hover:text-amber-200'
-            }`}
+          <button 
+            onClick={() => setIsLiked(!isLiked)} 
+            className="ml-auto transition p-1.5"
+            style={{ color: isLiked ? '#C5A059' : '#D8BD84' }}
           >
-            <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+            <Heart size={18} className={isLiked ? 'fill-[#C5A059]' : ''} />
           </button>
         </div>
 
-        {/* Player Controls */}
-        <div className="flex flex-col items-center gap-1 w-2/4">
+        {/* Orta: Pleyer İdarəetməsi */}
+        <div className="flex flex-col items-center gap-1.5 w-full md:w-2/4">
           <div className="flex items-center gap-4">
-            <button
-              onClick={onPrev}
-              className="text-amber-200/70 hover:text-amber-100 transition-colors p-1"
-            >
-              <SkipBack className="w-5 h-5" />
+            <button className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
+              <SkipBack size={18} />
             </button>
+            <button 
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition shadow-md hover:scale-105"
+              style={{ background: '#C5A059', color: '#2A211F' }}
+            >
+              {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+            </button>
+            <button className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
+              <SkipForward size={18} />
+            </button>
+          </div>
 
-            <button
-              onClick={onPlayPause}
-              className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-amber-950 flex items-center justify-center transition-transform transform active:scale-95 shadow-md shadow-amber-500/20"
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
-              ) : (
-                <Play className="w-5 h-5 fill-current ml-0.5" />
-              )}
-            </button>
-
-            <button
-              onClick={onNext}
-              className="text-amber-200/70 hover:text-amber-100 transition-colors p-1"
-            >
-              <SkipForward className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-2 w-full text-[11px]" style={{ color: '#D8BD84' }}>
+            <span>1:15</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              value={progress} 
+              onChange={(e) => setProgress(e.target.value)}
+              className="w-full h-1 rounded-lg appearance-none cursor-pointer accent-[#C5A059]"
+              style={{ background: 'rgba(247,243,237,0.15)' }}
+            />
+            <span>3:45</span>
           </div>
         </div>
 
-        {/* Volume Control */}
-        <div className="flex items-center justify-end gap-2 w-1/4">
-          <button
-            onClick={toggleMute}
-            className="text-amber-200/70 hover:text-amber-100 transition-colors p-1"
+        {/* Sağ: Səs və Sleep Timer */}
+        <div className="flex items-center justify-end gap-3 w-full md:w-1/4 relative">
+          <button 
+            onClick={() => setShowTimerModal(!showTimerModal)} 
+            className="p-2 rounded-lg transition"
+            style={{ color: timerMinutes ? '#C5A059' : '#D8BD84', background: timerMinutes ? 'rgba(197,160,89,0.15)' : 'transparent' }}
+            title="Sleep Timer"
           >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="w-5 h-5 text-red-400" />
-            ) : (
-              <Volume2 className="w-5 h-5" />
-            )}
+            <Clock size={18} />
           </button>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={isMuted ? 0 : volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            className="w-20 md:w-28 accent-amber-500 bg-white/20 h-1.5 rounded-lg appearance-none cursor-pointer"
-          />
+
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsMuted(!isMuted)} style={{ color: '#D8BD84' }}>
+              {isMuted || volume === '0' ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              value={isMuted ? 0 : volume} 
+              onChange={(e) => { setVolume(e.target.value); setIsMuted(false); }}
+              className="w-20 h-1 rounded-lg appearance-none cursor-pointer accent-[#C5A059]"
+              style={{ background: 'rgba(247,243,237,0.15)' }}
+            />
+          </div>
+
+          {/* Sleep Timer Modalı */}
+          {showTimerModal && (
+            <div 
+              className="absolute bottom-12 right-0 p-3 rounded-xl shadow-2xl border flex flex-col gap-1.5 min-w-[160px] z-50"
+              style={{ background: '#2A211F', borderColor: 'rgba(197,160,89,0.3)' }}
+            >
+              <span className="text-xs font-medium pb-1 border-b border-stone-700" style={{ color: '#C5A059' }}>
+                Yuxu Taymeri
+              </span>
+              {[15, 30, 45, 60].map((mins) => (
+                <button
+                  key={mins}
+                  onClick={() => { setTimerMinutes(mins); setShowTimerModal(false); }}
+                  className="text-left text-xs py-1.5 px-2 rounded hover:bg-stone-800 transition"
+                  style={{ color: '#F7F3ED' }}
+                >
+                  {mins} dəqiqə sonra
+                </button>
+              ))}
+              {timerMinutes && (
+                <button 
+                  onClick={() => { setTimerMinutes(null); setShowTimerModal(false); }}
+                  className="text-left text-xs py-1.5 px-2 rounded bg-red-900/30 text-red-300 hover:bg-red-900/50 transition mt-1"
+                >
+                  Sıfırla
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
       </div>
