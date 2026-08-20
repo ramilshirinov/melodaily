@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, Send, AlertCircle, Check, CornerDownRight } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, Send, AlertCircle, Check, CornerDownRight, Repeat } from 'lucide-react';
 
 export default function FeedTab({
   videos = [],
@@ -17,17 +17,49 @@ export default function FeedTab({
   warnings
 }) {
   const [copiedId, setCopiedId] = useState(null);
-  const [commentLikes, setCommentLikes] = useState({}); // Rəy bəyənmələri { commentId: { count, liked } }
+  const [commentLikes, setCommentLikes] = useState({}); // Rəy bəyənmələri
+  const [reposts, setReposts] = useState({}); // Təkrar paylaşmalar { trackId: { count, reposted } }
 
   const filteredVideos = videos.filter((v) => !matchesFilter || matchesFilter(v));
 
-  const handleShare = (trackId) => {
+  // Təkrar paylaş (Repost) funksiyası
+  const toggleRepost = (trackId, initialCount = 0) => {
+    setReposts((prev) => {
+      const current = prev[trackId] || { count: initialCount, reposted: false };
+      return {
+        ...prev,
+        [trackId]: {
+          count: current.reposted ? current.count - 1 : current.count + 1,
+          reposted: !current.reposted
+        }
+      };
+    });
+  };
+
+  // Nativ Paylaşma və ya Link Kopyalama
+  const handleShare = async (trackId, title) => {
     const url = window.location.href;
+    
+    // Əgər cihaz Native Share API dəstəkləyirsə (Mobil menyunu açır)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title || 'MeloDaily',
+          text: 'Bu nostaljik paylaşımı dinləyin!',
+          url: url,
+        });
+        return;
+      } catch (err) {
+        // İstifadəçi paylaşmanı ləğv etdikdə xəta verməməsi üçün
+      }
+    }
+
+    // Əgər Native Share dəstəklənmirsə, linki kopyalayır
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
+      setCopiedId(trackId);
+      setTimeout(() => setCopiedId(null), 2000);
     }
-    setCopiedId(trackId);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   // Rəyi kopyalayıb paylaşmaq
@@ -39,7 +71,7 @@ export default function FeedTab({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Rəyi bəyənmək / bəyənməni geri götürmək
+  // Rəyi bəyənmək
   const toggleCommentLike = (commentId, initialLikes = 0) => {
     setCommentLikes((prev) => {
       const current = prev[commentId] || { count: initialLikes, liked: false };
@@ -53,7 +85,7 @@ export default function FeedTab({
     });
   };
 
-  // Rəyə cavab vermək üçün istifadəçi adını tag edərək daxil etmək
+  // Rəyə cavab verdikdə tagging
   const handleReplyClick = (trackId, username) => {
     const currentText = drafts[trackId] || '';
     const mentionText = `@${username} `;
@@ -76,12 +108,14 @@ export default function FeedTab({
           const warning = warnings[item.trackId];
           const draftText = drafts[item.trackId] || '';
 
+          const repostData = reposts[item.trackId] || { count: item.reposts || 0, reposted: false };
+
           return (
             <div
               key={item.id || item.trackId}
               className="bg-[#362A27] border border-[#C5A059]/30 rounded-2xl overflow-hidden shadow-xl transition hover:border-[#C5A059]/60"
             >
-              {/* İstifadəçi & Başlıq Məlumatı */}
+              {/* Başlıq */}
               <div className="p-4 flex items-center justify-between border-b border-stone-800">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/40 flex items-center justify-center text-lg font-serif text-[#C5A059]">
@@ -97,7 +131,7 @@ export default function FeedTab({
                 </span>
               </div>
 
-              {/* Video/Musiqi Media Sahəsi & Vinil Animasiyası */}
+              {/* Media Sahəsi */}
               <div className="relative bg-black/40 aspect-video flex items-center justify-center group overflow-hidden">
                 <div
                   className={`w-28 h-28 rounded-full border-4 border-[#C5A059]/40 flex items-center justify-center transition-transform duration-700 ${
@@ -113,7 +147,6 @@ export default function FeedTab({
                   </div>
                 </div>
 
-                {/* Ekvalayzer Animasiyası */}
                 {isVideoPlaying && (
                   <div className="absolute bottom-3 left-4 flex items-end gap-1 h-6">
                     <span className="w-1 bg-[#C5A059] animate-bounce h-full rounded-full"></span>
@@ -133,11 +166,11 @@ export default function FeedTab({
                 </button>
               </div>
 
-              {/* İnteraktiv Panel (Like, Comment, Share, Bookmark) */}
+              {/* İnteraktiv Panel */}
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between pt-1 border-t border-stone-800">
                   <div className="flex items-center gap-4">
-                    {/* Bəyənmə (Like) Düyməsi */}
+                    {/* Bəyənmə */}
                     <button
                       onClick={() => likeVideo(item.trackId)}
                       className="flex items-center gap-1.5 text-xs transition hover:scale-105"
@@ -147,7 +180,7 @@ export default function FeedTab({
                       <span>{item.likes}</span>
                     </button>
 
-                    {/* Rəylər (Comment) Düyməsi */}
+                    {/* Rəylər */}
                     <button
                       onClick={() => toggleComments(item.trackId)}
                       className="flex items-center gap-1.5 text-xs transition hover:scale-105"
@@ -157,11 +190,22 @@ export default function FeedTab({
                       <span>{item.comments?.length || 0}</span>
                     </button>
 
-                    {/* Paylaşma (Share) Düyməsi */}
+                    {/* Təkrar Paylaş (Repost) */}
                     <button
-                      onClick={() => handleShare(item.trackId)}
+                      onClick={() => toggleRepost(item.trackId, item.reposts || 0)}
+                      className="flex items-center gap-1.5 text-xs transition hover:scale-105"
+                      style={{ color: repostData.reposted ? '#48BB78' : '#D8BD84' }}
+                      title="Təkrar paylaş (Repost)"
+                    >
+                      <Repeat size={18} className={repostData.reposted ? 'text-green-500' : ''} />
+                      <span>{repostData.count}</span>
+                    </button>
+
+                    {/* Xarici Paylaşma (Share) */}
+                    <button
+                      onClick={() => handleShare(item.trackId, item.title)}
                       className="flex items-center gap-1.5 text-xs transition hover:scale-105 text-[#D8BD84]"
-                      title="Keçidi kopyala"
+                      title="Paylaş"
                     >
                       {copiedId === item.trackId ? (
                         <>
@@ -177,7 +221,7 @@ export default function FeedTab({
                     </button>
                   </div>
 
-                  {/* Yadda saxla (Bookmark) Düyməsi */}
+                  {/* Bookmark */}
                   <button
                     onClick={() => bookmarkVideo(item.trackId)}
                     className="text-xs transition hover:scale-105"
@@ -187,7 +231,7 @@ export default function FeedTab({
                   </button>
                 </div>
 
-                {/* Rəylər (Comments) Açılan Paneli */}
+                {/* Rəylər Paneli */}
                 {isOpen && (
                   <div className="pt-3 border-t border-stone-800/80 space-y-3 animate-fadeIn">
                     <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -204,9 +248,7 @@ export default function FeedTab({
                               </div>
                               <p className="text-xs text-stone-200 leading-relaxed">{c.text}</p>
                               
-                              {/* Rəyin Altındakı Düymələr: Like, Cavab Ver, Paylaş */}
                               <div className="flex items-center gap-4 pt-1 text-[11px] border-t border-stone-800/50">
-                                {/* Rəy Bəyənmə */}
                                 <button
                                   onClick={() => toggleCommentLike(c.id, c.likes || 0)}
                                   className="flex items-center gap-1 hover:scale-105 transition"
@@ -216,7 +258,6 @@ export default function FeedTab({
                                   <span>{cLikeData.count > 0 ? cLikeData.count : ''} Bəyən</span>
                                 </button>
 
-                                {/* Rəyə Cavab Ver */}
                                 <button
                                   onClick={() => handleReplyClick(item.trackId, userName)}
                                   className="flex items-center gap-1 text-[#D8BD84] hover:text-[#C5A059] transition"
@@ -225,7 +266,6 @@ export default function FeedTab({
                                   <span>Cavab ver</span>
                                 </button>
 
-                                {/* Rəyi Paylaş (Kopyala) */}
                                 <button
                                   onClick={() => handleShareComment(c.text, c.id)}
                                   className="flex items-center gap-1 text-[#D8BD84] hover:text-[#C5A059] transition"
@@ -241,7 +281,6 @@ export default function FeedTab({
                                 </button>
                               </div>
 
-                              {/* Cavablar (Alt Rəylər) */}
                               {c.replies && c.replies.length > 0 && (
                                 <div className="ml-3 pl-2 border-l border-[#C5A059]/30 space-y-1.5 pt-1">
                                   {c.replies.map((r) => (
@@ -263,7 +302,6 @@ export default function FeedTab({
                       )}
                     </div>
 
-                    {/* Etik Qayda Xəbərdarlığı */}
                     {warning && (
                       <div className="flex items-center gap-2 p-2.5 bg-red-950/40 border border-red-800/50 rounded-xl text-xs text-red-300">
                         <AlertCircle size={16} className="shrink-0" />
@@ -271,7 +309,6 @@ export default function FeedTab({
                       </div>
                     )}
 
-                    {/* Rəy Yazma Forması */}
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
