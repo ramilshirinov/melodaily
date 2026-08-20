@@ -1,95 +1,252 @@
-// src/components/HomeTab.jsx
-import React from 'react';
-import { Play, Heart, MessageCircle, Share2, Music, Sparkles } from 'lucide-react';
-import { TRACKS, SOCIAL_POSTS, FEED_SEED } from '../constants/data';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, Share2, Send, CornerDownRight, Check } from 'lucide-react';
 
-export default function HomeTab({ onPlayTrack, currentTrack, isPlaying }) {
+export default function HomeTab() {
+  const [posts, setPosts] = useState([
+    {
+      id: 1,
+      author: 'Aysel Rzayeva',
+      time: 'Dünən',
+      content: 'Nənəmin evində tapılan qədim qrammofonun səsini çəkdim, dinləyin.',
+      likes: 238,
+      liked: false,
+      comments: [
+        { id: 101, user: 'Elvin.M', text: 'Möhtəşəm tapıntıdır! 😍', time: '12s əvvəl', replies: [] }
+      ]
+    },
+    {
+      id: 2,
+      author: 'Kamran Hüseynov',
+      time: 'Dünən',
+      content: 'Sinatra ilə bu axşam kofemi içirəm ☕ — "Fly Me to the Moon" əla seçimdir.',
+      likes: 45,
+      liked: false,
+      comments: []
+    },
+    {
+      id: 3,
+      author: 'Sevinc Abbasova',
+      time: '2 gün əvvəl',
+      content: 'Bakı Bulvarında gün batımı və Piaf sədaları 🌅',
+      likes: 97,
+      liked: false,
+      comments: []
+    }
+  ]);
+
+  const [openComments, setOpenComments] = useState({});
+  const [draftComments, setDraftComments] = useState({});
+  const [replyingTo, setReplyingTo] = useState({}); // { postId: { commentId, username } }
+  const [copiedId, setCopiedId] = useState(null);
+
+  // Bəyənmə
+  const toggleLike = (postId) => {
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          liked: !p.liked,
+          likes: p.liked ? p.likes - 1 : p.likes + 1
+        };
+      }
+      return p;
+    }));
+  };
+
+  // Rəy panelini aç/bağla
+  const toggleComments = (postId) => {
+    setOpenComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  // Paylaşma (Link kopyalama)
+  const handleShare = (postId) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+    }
+    setCopiedId(postId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Cavab vermə düyməsinə klikləyəndə `@username` avtomatik yazılır
+  const startReply = (postId, commentId, username) => {
+    setReplyingTo(prev => ({ ...prev, [postId]: { commentId, username } }));
+    setDraftComments(prev => ({
+      ...prev,
+      [postId]: `@${username} `
+    }));
+  };
+
+  // Rəy və ya Rəyə Cavab Göndərmə
+  const handleSendComment = (postId) => {
+    const text = (draftComments[postId] || '').trim();
+    if (!text) return;
+
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        const replyInfo = replyingTo[postId];
+        
+        // Əgər hansısa rəyə cavab verilirsə
+        if (replyInfo) {
+          const updatedComments = p.comments.map(c => {
+            if (c.id === replyInfo.commentId) {
+              return {
+                ...c,
+                replies: [
+                  ...(c.replies || []),
+                  { id: Date.now(), user: 'Ramil Şirinov', text, time: 'indi' }
+                ]
+              };
+            }
+            return c;
+          });
+          return { ...p, comments: updatedComments };
+        } else {
+          // Birbaşa posta rəy
+          return {
+            ...p,
+            comments: [
+              ...p.comments,
+              { id: Date.now(), user: 'Ramil Şirinov', text, time: 'indi', replies: [] }
+            ]
+          };
+        }
+      }
+      return p;
+    }));
+
+    setDraftComments(prev => ({ ...prev, [postId]: '' }));
+    setReplyingTo(prev => ({ ...prev, [postId]: null }));
+  };
+
   return (
-    <div className="space-[#2A211F] text-[#F7F3ED] py-6 max-w-4xl mx-auto px-4 space-y-8">
-      
-      {/* Qarşılama Banneri */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[rgba(197,160,89,0.2)] to-[rgba(42,33,31,0.6)] border border-[rgba(197,160,89,0.3)]">
-        <h1 className="text-2xl md:text-3xl font-bold font-serif text-[#C5A059] mb-2">
-          MeloDaily Axınına Xoş Gəldiniz ✨
-        </h1>
-        <p className="text-sm text-[#D8BD84] opacity-90">
-          Zamansız retro melodiyalar, estetik kadrlar və həvəskar ifaçıların vahid məkanı.
-        </p>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      {posts.map((post) => {
+        const isOpen = openComments[post.id];
+        const draftText = draftComments[post.id] || '';
 
-      {/* Vahid Qarışıq Axın (Feed) */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold flex items-center gap-2 text-[#C5A059]">
-          <Sparkles size={18} /> Önə Çıxan Paylaşımlar və Musiqilər
-        </h2>
-
-        {/* 1. Musiqi Kartları */}
-        {TRACKS.slice(0, 4).map((track) => (
-          <div 
-            key={`track-${track.id}`}
-            className="p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-300 hover:border-[#C5A059]"
-            style={{ background: 'rgba(247,243,237,0.05)', borderColor: 'rgba(197,160,89,0.2)' }}
-          >
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <button 
-                onClick={() => onPlayTrack(track)}
-                className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition"
-                style={{ background: '#C5A059', color: '#2A211F' }}
-              >
-                <Play size={20} fill="#2A211F" className="ml-0.5" />
-              </button>
-              <div>
-                <h3 className="font-bold text-base text-[#F7F3ED]">{track.title}</h3>
-                <p className="text-xs text-[#D8BD84]">{track.singer} · <span className="opacity-75">{track.film}</span></p>
-                <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full border border-[rgba(197,160,89,0.3)] text-[#C5A059]">
-                  {track.decade}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto justify-end text-xs text-[#D8BD84]">
-              <span className="flex items-center gap-1"><Music size={14} /> {track.genre}</span>
-              <button onClick={() => onPlayTrack(track)} className="px-3 py-1.5 rounded-full border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-[#2A211F] transition">
-                Dinlə
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {/* 2. Sosial Postlar */}
-        {SOCIAL_POSTS.map((post) => (
-          <div 
-            key={`post-${post.id}`}
-            className="p-5 rounded-xl border space-y-3"
-            style={{ background: 'rgba(247,243,237,0.03)', borderColor: 'rgba(197,160,89,0.15)' }}
-          >
+        return (
+          <div key={post.id} className="bg-[#362A27] border border-[#C5A059]/30 rounded-2xl p-5 shadow-lg space-y-4">
+            {/* Post Sahibi */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#C5A059] text-[#2A211F] font-bold flex items-center justify-center text-sm">
-                {post.avatarInitial}
+              <div className="w-10 h-10 rounded-full bg-[#C5A059]/20 border border-[#C5A059] flex items-center justify-center font-bold text-[#C5A059]">
+                {post.author[0]}
               </div>
               <div>
-                <h4 className="font-semibold text-sm text-[#F7F3ED]">{post.author}</h4>
-                <p className="text-[11px] text-[#D8BD84] opacity-75">{post.time}</p>
+                <h4 className="text-sm font-semibold text-[#F7F3ED]">{post.author}</h4>
+                <span className="text-xs text-stone-400">{post.time}</span>
               </div>
             </div>
 
-            <p className="text-sm text-[#EFE7D8] leading-relaxed">{post.content}</p>
+            {/* Metn */}
+            <p className="text-sm text-stone-200 leading-relaxed">{post.content}</p>
 
-            <div className="flex items-center gap-6 pt-2 text-xs text-[#D8BD84] border-t border-[rgba(197,160,89,0.1)]">
-              <button className="flex items-center gap-1.5 hover:text-[#C5A059] transition">
-                <Heart size={15} /> {post.likes}
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-[#C5A059] transition">
-                <MessageCircle size={15} /> {post.comments}
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-[#C5A059] transition ml-auto">
-                <Share2 size={15} /> Paylaş
+            {/* Interaktiv Düymələr */}
+            <div className="flex items-center justify-between pt-3 border-t border-stone-800/80 text-xs text-[#D8BD84]">
+              <div className="flex items-center gap-6">
+                {/* Like */}
+                <button
+                  onClick={() => toggleLike(post.id)}
+                  className="flex items-center gap-1.5 hover:scale-105 transition"
+                  style={{ color: post.liked ? '#E53E3E' : '#D8BD84' }}
+                >
+                  <Heart size={18} className={post.liked ? 'fill-[#E53E3E]' : ''} />
+                  <span>{post.likes}</span>
+                </button>
+
+                {/* Comment */}
+                <button
+                  onClick={() => toggleComments(post.id)}
+                  className="flex items-center gap-1.5 hover:scale-105 transition hover:text-[#C5A059]"
+                >
+                  <MessageCircle size={18} />
+                  <span>{post.comments.length}</span>
+                </button>
+              </div>
+
+              {/* Share */}
+              <button
+                onClick={() => handleShare(post.id)}
+                className="flex items-center gap-1.5 hover:text-[#C5A059] transition"
+              >
+                {copiedId === post.id ? (
+                  <>
+                    <Check size={16} className="text-green-400" />
+                    <span className="text-green-400 font-medium">Kopyalandı</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 size={16} />
+                    <span>Paylaş</span>
+                  </>
+                )}
               </button>
             </div>
-          </div>
-        ))}
 
-      </div>
+            {/* Rəylər Bölməsi */}
+            {isOpen && (
+              <div className="pt-3 border-t border-stone-800 space-y-3 animate-fadeIn">
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                  {post.comments.length > 0 ? (
+                    post.comments.map((c) => (
+                      <div key={c.id} className="bg-[#2A211F] p-3 rounded-xl border border-stone-800/80 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-[#C5A059]">
+                          <span className="font-semibold">{c.user}</span>
+                          <span className="text-stone-500 text-[10px]">{c.time}</span>
+                        </div>
+                        <p className="text-xs text-stone-200">{c.text}</p>
+
+                        {/* Rəyə Cavab Ver Düyməsi */}
+                        <button
+                          onClick={() => startReply(post.id, c.id, c.user)}
+                          className="flex items-center gap-1 text-[11px] text-[#D8BD84] hover:text-[#C5A059] transition pt-1"
+                        >
+                          <CornerDownRight size={13} />
+                          <span>Cavab ver</span>
+                        </button>
+
+                        {/* Alt Rəylər (Replies / Thread) */}
+                        {c.replies && c.replies.length > 0 && (
+                          <div className="ml-4 pl-3 border-l-2 border-[#C5A059]/30 space-y-2 pt-2">
+                            {c.replies.map((r) => (
+                              <div key={r.id} className="bg-[#362A27]/60 p-2 rounded-lg text-xs">
+                                <div className="flex items-center justify-between text-[10px] text-[#C5A059]">
+                                  <span className="font-semibold">{r.user}</span>
+                                  <span className="text-stone-500">{r.time}</span>
+                                </div>
+                                <p className="text-stone-300 mt-0.5">{r.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-stone-500 italic">Hələ rəy yazılmayıb. İlk rəyi siz yazın!</p>
+                  )}
+                </div>
+
+                {/* Rəy Input Hissəsi */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nostaljik təəssüratınızı yazın... (@ ilə tag edin)"
+                    value={draftText}
+                    onChange={(e) => setDraftComments(prev => ({ ...prev, [post.id]: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendComment(post.id)}
+                    className="flex-1 bg-[#2A211F] border border-stone-700 rounded-xl px-3 py-2 text-xs text-[#F7F3ED] focus:outline-none focus:border-[#C5A059]"
+                  />
+                  <button
+                    onClick={() => handleSendComment(post.id)}
+                    className="p-2 rounded-xl bg-[#C5A059] text-[#2A211F] hover:bg-[#D8BD84] transition"
+                  >
+                    <Send size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

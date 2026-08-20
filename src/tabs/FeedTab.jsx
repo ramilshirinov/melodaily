@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, Send, AlertCircle, Check } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, Send, AlertCircle, Check, CornerDownRight } from 'lucide-react';
 
 export default function FeedTab({
   videos = [],
@@ -17,6 +17,7 @@ export default function FeedTab({
   warnings
 }) {
   const [copiedId, setCopiedId] = useState(null);
+  const [commentLikes, setCommentLikes] = useState({}); // Rəy bəyənmələri { commentId: { count, liked } }
 
   const filteredVideos = videos.filter((v) => !matchesFilter || matchesFilter(v));
 
@@ -27,6 +28,38 @@ export default function FeedTab({
     }
     setCopiedId(trackId);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Rəyi kopyalayıb paylaşmaq
+  const handleShareComment = (commentText, commentId) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(commentText);
+    }
+    setCopiedId(`comment-${commentId}`);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Rəyi bəyənmək / bəyənməni geri götürmək
+  const toggleCommentLike = (commentId, initialLikes = 0) => {
+    setCommentLikes((prev) => {
+      const current = prev[commentId] || { count: initialLikes, liked: false };
+      return {
+        ...prev,
+        [commentId]: {
+          count: current.liked ? current.count - 1 : current.count + 1,
+          liked: !current.liked
+        }
+      };
+    });
+  };
+
+  // Rəyə cavab vermək üçün istifadəçi adını tag edərək daxil etmək
+  const handleReplyClick = (trackId, username) => {
+    const currentText = drafts[trackId] || '';
+    const mentionText = `@${username} `;
+    if (!currentText.includes(mentionText)) {
+      setDraft(trackId, `${mentionText}${currentText}`);
+    }
   };
 
   return (
@@ -157,17 +190,74 @@ export default function FeedTab({
                 {/* Rəylər (Comments) Açılan Paneli */}
                 {isOpen && (
                   <div className="pt-3 border-t border-stone-800/80 space-y-3 animate-fadeIn">
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                       {item.comments && item.comments.length > 0 ? (
-                        item.comments.map((c) => (
-                          <div key={c.id} className="bg-[#2A211F]/70 p-2.5 rounded-xl border border-stone-800">
-                            <div className="flex items-center justify-between text-[11px] text-[#C5A059] mb-1">
-                              <span className="font-semibold">{c.user}</span>
-                              <span className="text-stone-500">{c.time}</span>
+                        item.comments.map((c) => {
+                          const userName = c.user || c.author || 'İstifadəçi';
+                          const cLikeData = commentLikes[c.id] || { count: c.likes || 0, liked: false };
+
+                          return (
+                            <div key={c.id} className="bg-[#2A211F]/70 p-2.5 rounded-xl border border-stone-800 space-y-2">
+                              <div className="flex items-center justify-between text-[11px] text-[#C5A059]">
+                                <span className="font-semibold">{userName}</span>
+                                <span className="text-stone-500">{c.time}</span>
+                              </div>
+                              <p className="text-xs text-stone-200 leading-relaxed">{c.text}</p>
+                              
+                              {/* Rəyin Altındakı Düymələr: Like, Cavab Ver, Paylaş */}
+                              <div className="flex items-center gap-4 pt-1 text-[11px] border-t border-stone-800/50">
+                                {/* Rəy Bəyənmə */}
+                                <button
+                                  onClick={() => toggleCommentLike(c.id, c.likes || 0)}
+                                  className="flex items-center gap-1 hover:scale-105 transition"
+                                  style={{ color: cLikeData.liked ? '#E53E3E' : '#D8BD84' }}
+                                >
+                                  <Heart size={13} className={cLikeData.liked ? 'fill-[#E53E3E]' : ''} />
+                                  <span>{cLikeData.count > 0 ? cLikeData.count : ''} Bəyən</span>
+                                </button>
+
+                                {/* Rəyə Cavab Ver */}
+                                <button
+                                  onClick={() => handleReplyClick(item.trackId, userName)}
+                                  className="flex items-center gap-1 text-[#D8BD84] hover:text-[#C5A059] transition"
+                                >
+                                  <CornerDownRight size={13} />
+                                  <span>Cavab ver</span>
+                                </button>
+
+                                {/* Rəyi Paylaş (Kopyala) */}
+                                <button
+                                  onClick={() => handleShareComment(c.text, c.id)}
+                                  className="flex items-center gap-1 text-[#D8BD84] hover:text-[#C5A059] transition"
+                                >
+                                  {copiedId === `comment-${c.id}` ? (
+                                    <span className="text-green-400 font-medium">Kopyalandı!</span>
+                                  ) : (
+                                    <>
+                                      <Share2 size={12} />
+                                      <span>Paylaş</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Cavablar (Alt Rəylər) */}
+                              {c.replies && c.replies.length > 0 && (
+                                <div className="ml-3 pl-2 border-l border-[#C5A059]/30 space-y-1.5 pt-1">
+                                  {c.replies.map((r) => (
+                                    <div key={r.id} className="bg-[#362A27]/60 p-1.5 rounded-lg text-xs">
+                                      <div className="flex items-center justify-between text-[10px] text-[#C5A059]">
+                                        <span className="font-semibold">{r.user || r.author}</span>
+                                        <span className="text-stone-500">{r.time}</span>
+                                      </div>
+                                      <p className="text-stone-300 text-[11px] mt-0.5">{r.text}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <p className="text-xs text-stone-200">{c.text}</p>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <p className="text-xs text-stone-500 italic py-1">Hələ heç bir rəy yazılmayıb. İlk rəyi siz yazın! 😊</p>
                       )}
@@ -185,7 +275,7 @@ export default function FeedTab({
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        placeholder="Nostaljik təəssüratınızı yazın..."
+                        placeholder="Nostaljik təəssüratınızı yazın... (@ ilə tag edin)"
                         value={draftText}
                         onChange={(e) => setDraft(item.trackId, e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addComment(item.trackId)}
