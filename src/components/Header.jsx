@@ -35,10 +35,24 @@ export default function Header({
     recognition.onend = () => setIsListening(false);
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
+      // Səslə deyildikdə state-i yeniləyirik
       setSearch(transcript);
+      
+      // Əgər axtarış təbinə avtomatik keçmək istəyirsinizsə:
+      if (activeTab !== 'music' && activeTab !== 'feed') {
+        setActiveTab('music');
+      }
     };
 
     recognition.start();
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Axtarış formasını submit etdikdə musiqi və ya lenta bölməsinə yönləndirə bilərsiniz
+    if (search.trim() && activeTab !== 'music' && activeTab !== 'feed') {
+      setActiveTab('music');
+    }
   };
 
   const handleAddSubmit = (e) => {
@@ -122,7 +136,7 @@ export default function Header({
 
         {/* Axtarış, Səsli Axtarış & Post Əlavə Et */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative flex-1 md:w-56">
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 md:w-56">
             <Search size={16} className="absolute left-3 top-2.5 text-stone-400" />
             <input
               type="text"
@@ -132,6 +146,7 @@ export default function Header({
               className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl pl-9 pr-8 py-1.5 text-xs text-[#F7F3ED] placeholder-stone-400 focus:outline-none focus:border-[#C5A059]"
             />
             <button
+              type="button"
               onClick={handleVoiceSearch}
               className={`absolute right-2 top-2 transition ${
                 isListening ? 'text-red-400 animate-pulse' : 'text-[#D8BD84] hover:text-white'
@@ -140,7 +155,7 @@ export default function Header({
             >
               <Mic size={15} />
             </button>
-          </div>
+          </form>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
