@@ -44,17 +44,27 @@ export default function Header({
     recognition.start();
   };
 
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
-    if (!newTitle || !newSinger) return;
+    if (!newTitle.trim() || !newSinger.trim()) return;
+
+    // Əgər lokal media faylı seçilibsə, onu oynadıla bilən keçici URL-ə çeviririk
+    let fileUrl = '';
+    if (selectedFile) {
+      fileUrl = URL.createObjectURL(selectedFile);
+    }
+
     if (onAddNewTrack) {
-      onAddNewTrack({ 
+      await onAddNewTrack({ 
         title: newTitle, 
         singer: newSinger, 
         film: newFilm || 'Klassik',
-        file: selectedFile 
+        file: selectedFile,
+        audioUrl: fileUrl
       });
     }
+
+    // Inputları təmizləyib modalı bağlayırıq
     setNewTitle('');
     setNewSinger('');
     setNewFilm('');
@@ -90,6 +100,7 @@ export default function Header({
           </div>
 
           <button
+            type="button"
             onClick={() => setShowAddModal(true)}
             className="md:hidden p-2 text-[#C5A059]"
             title="Paylaşım / Musiqi əlavə et"
@@ -110,6 +121,7 @@ export default function Header({
           ].map((t) => (
             <button
               key={t.id}
+              type="button"
               onClick={() => setActiveTab(t.id)}
               className={`px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                 activeTab === t.id
@@ -146,6 +158,7 @@ export default function Header({
           </div>
 
           <button
+            type="button"
             onClick={() => setShowFilters(!showFilters)}
             className="p-2 rounded-xl bg-[#362A27] border border-stone-700/60 text-[#D8BD84] hover:text-white transition"
             title="Filtrlər"
@@ -154,6 +167,7 @@ export default function Header({
           </button>
 
           <button
+            type="button"
             onClick={() => setShowAddModal(true)}
             className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#C5A059] text-[#2A211F] rounded-xl text-xs font-semibold hover:bg-[#D8BD84] transition shrink-0"
           >
@@ -168,6 +182,7 @@ export default function Header({
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-[#2A211F] border border-[#C5A059]/40 rounded-2xl max-w-md w-full p-6 text-[#F7F3ED] shadow-2xl relative">
             <button
+              type="button"
               onClick={() => setShowAddModal(false)}
               className="absolute top-4 right-4 text-stone-400 hover:text-white text-xl font-bold"
             >
@@ -220,7 +235,7 @@ export default function Header({
                 <input
                   type="file"
                   accept="audio/*,video/*"
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  onChange={(e) => setSelectedFile(e.target.files[0] || null)}
                   className="w-full bg-[#362A27] border border-stone-700/60 rounded-xl p-2 text-xs text-[#F7F3ED] file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#C5A059] file:text-[#2A211F] hover:file:bg-[#D8BD84] cursor-pointer"
                 />
                 {selectedFile && (
@@ -234,13 +249,13 @@ export default function Header({
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs bg-stone-800 text-stone-300 hover:bg-stone-700"
+                  className="px-4 py-2 rounded-xl text-xs bg-stone-800 text-stone-300 hover:bg-stone-700 transition"
                 >
                   Ləğv et
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#C5A059] text-[#2A211F] hover:bg-[#D8BD84]"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#C5A059] text-[#2A211F] hover:bg-[#D8BD84] transition"
                 >
                   Paylaş
                 </button>

@@ -36,7 +36,6 @@ export default function App() {
         if (error) {
           console.error('Supabase-dən məlumat çəkilərkən xəta:', error.message);
         } else if (data && data.length > 0) {
-          // Baza boş deyilsə, local seed ilə birləşdir və ya birbaşa bazadan istifadə et
           setTracks(data);
         }
       } catch (err) {
@@ -259,20 +258,31 @@ export default function App() {
       decade: '1980-lər',
       creator: currentUser.name,
       cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+      audio_url: newTrackData.audioUrl || '',
       lyrics: "İstifadəçi tərəfindən yüklənən audio faylı."
     };
 
-    // Bazaya yazırıq
-    const { data, error } = await supabase
-      .from('tracks')
-      .insert([trackPayload])
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('tracks')
+        .insert([trackPayload])
+        .select();
 
-    if (error) {
-      console.error('Supabase-ə yazılarkən xəta:', error.message);
-    } else if (data && data.length > 0) {
-      setTracks((prev) => [data[0], ...prev]);
-      playTrack(data[0]);
+      if (error) {
+        console.error('Supabase-ə yazılarkən xəta:', error.message);
+        // Baza xətası olarsa belə lokal olaraq əlavə edirik
+        const fallbackTrack = { id: Date.now(), ...trackPayload };
+        setTracks((prev) => [fallbackTrack, ...prev]);
+        playTrack(fallbackTrack);
+      } else if (data && data.length > 0) {
+        setTracks((prev) => [data[0], ...prev]);
+        playTrack(data[0]);
+      }
+    } catch (err) {
+      console.error('Sorğu xətası:', err);
+      const fallbackTrack = { id: Date.now(), ...trackPayload };
+      setTracks((prev) => [fallbackTrack, ...prev]);
+      playTrack(fallbackTrack);
     }
   };
 
