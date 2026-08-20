@@ -19,7 +19,7 @@ export default function App() {
   const [filters, setFilters] = useState({ singer: '', film: '', author: '', decade: '', mood: '' });
   const [showFilters, setShowFilters] = useState(false);
 
-  // User Profile & System Roles
+  // User Profile
   const [currentUser] = useState({
     id: 'u_admin_01',
     name: 'Ramil Şirinov',
@@ -29,21 +29,51 @@ export default function App() {
     topic: 'MeloDaily Qurucusu & Retro Kolleksioner',
     isVerified: true,
     ratingScore: 125000,
-    monetization: {
-      isEligible: true,
-      commissionRate: 0.20
-    }
+    monetization: { isEligible: true, commissionRate: 0.20 }
   });
 
-  // Player State
+  // --- 1. LOCALSTORAGE İNTEQRASİYASI ---
+  const [bookmarkedTrackIds, setBookmarkedTrackIds] = useState(() => {
+    const saved = localStorage.getItem('melodaily_bookmarks');
+    return saved ? JSON.parse(saved) : [2, 7];
+  });
+
+  const [walletBalance, setWalletBalance] = useState(() => {
+    const saved = localStorage.getItem('melodaily_wallet');
+    return saved ? JSON.parse(saved) : 3250;
+  });
+
+  const [tipJar, setTipJar] = useState(() => {
+    const saved = localStorage.getItem('melodaily_tipjar');
+    return saved ? JSON.parse(saved) : 8420;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('melodaily_bookmarks', JSON.stringify(bookmarkedTrackIds));
+  }, [bookmarkedTrackIds]);
+
+  useEffect(() => {
+    localStorage.setItem('melodaily_wallet', JSON.stringify(walletBalance));
+  }, [walletBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('melodaily_tipjar', JSON.stringify(tipJar));
+  }, [tipJar]);
+
+  // --- 2. REAL AUDIO ENGINE (HTML5 <audio>) ---
+  const audioRef = useRef(new Audio());
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(72);
   const [muted, setMuted] = useState(false);
   const [headphonesMode, setHeadphonesMode] = useState(true);
   const [sleepMinutesLeft, setSleepMinutesLeft] = useState(0);
   const [sleepMenuOpen, setSleepMenuOpen] = useState(false);
+
+  // 3. Mahnı Sözləri Modalı
+  const [showLyricsModal, setShowLyricsModal] = useState(false);
 
   // Feed State
   const [videos, setVideos] = useState(
@@ -53,14 +83,9 @@ export default function App() {
   const [drafts, setDrafts] = useState({});
   const [warnings, setWarnings] = useState({});
 
-  // Bookmarks / Sevimlilər State (Pleyer və Profil üçün sinxron idarəetmə)
-  const [bookmarkedTrackIds, setBookmarkedTrackIds] = useState([2, 7]);
-
   // Radio State
   const [listenerCount, setListenerCount] = useState(1243);
   const [giftHistory, setGiftHistory] = useState(GIFT_HISTORY_SEED);
-  const [walletBalance, setWalletBalance] = useState(3250);
-  const [tipJar, setTipJar] = useState(8420);
   const [currentGiftAnim, setCurrentGiftAnim] = useState(null);
 
   // Together State
@@ -70,34 +95,64 @@ export default function App() {
   const [memoryPhotos, setMemoryPhotos] = useState([]);
   const [selectedMood, setSelectedMood] = useState(null);
 
-  const progressInterval = useRef(null);
   const sleepInterval = useRef(null);
   const listenerInterval = useRef(null);
 
-  /* Player Engine */
+  /* Audio Effect Handling */
   const handleNext = useCallback(() => {
     if (!currentTrack) return;
     const idx = TRACKS.findIndex((t) => t.id === currentTrack.id);
     const nextTrack = TRACKS[(idx + 1) % TRACKS.length];
     setCurrentTrack(nextTrack);
-    setProgress(0);
     setIsPlaying(true);
   }, [currentTrack]);
 
   useEffect(() => {
-    if (isPlaying && currentTrack) {
-      progressInterval.current = setInterval(() => {
+    const audio = audioRef.current;
+
+    const onTimeUpdate = () => setProgress(audio.currentTime);
+    const onLoadedMetadata = () => setDuration(audio.duration || currentTrack?.duration || 180);
+    const onEnded = () => handleNext();
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('ended', onEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('ended', onEnded);
+    };
+  }, [currentTrack, handleNext]);
+
+  useEffect(() => {
+    if (currentTrack?.audioUrl) {
+      if (audioRef.current.src !== currentTrack.audioUrl) {
+        audioRef.current.src = currentTrack.audioUrl;
+      }
+      if (isPlaying) {
+        audioRef.current.play().catch(() => setIsPlaying(false));
+      } else {
+        audioRef.current.pause();
+      }
+    } else if (isPlaying && currentTrack) {
+      // Audio URL yoxdursa simulyasiya taymeri (Fallback)
+      const interval = setInterval(() => {
         setProgress((p) => {
-          if (p >= currentTrack.duration) {
+          if (p >= (currentTrack.duration || 225)) {
             handleNext();
             return 0;
           }
           return p + 1;
         });
       }, 1000);
+      return () => clearInterval(interval);
     }
-    return () => clearInterval(progressInterval.current);
-  }, [isPlaying, currentTrack, handleNext]);
+  }, [currentTrack, isPlaying, handleNext]);
+
+  useEffect(() => {
+    audioRef.current.volume = muted ? 0 : volume / 100;
+  }, [volume, muted]);
 
   useEffect(() => {
     if (sleepMinutesLeft > 0) {
@@ -105,6 +160,7 @@ export default function App() {
         setSleepMinutesLeft((s) => {
           if (s <= 1) {
             setIsPlaying(false);
+            audioRef.current.pause();
             clearInterval(sleepInterval.current);
             return 0;
           }
@@ -153,7 +209,13 @@ export default function App() {
     setIsPlaying(true);
   };
 
-  const seek = (val) => setProgress(val);
+  const seek = (val) => {
+    setProgress(val);
+    if (audioRef.current.src) {
+      audioRef.current.currentTime = val;
+    }
+  };
+
   const setVolume = (v) => { setVolumeState(v); if (v > 0) setMuted(false); };
   const toggleMute = () => setMuted((m) => !m);
   const toggleHeadphones = () => setHeadphonesMode((h) => !h);
@@ -215,12 +277,12 @@ export default function App() {
     setDrafts((d) => ({ ...d, [trackId]: '' }));
   };
 
-  /* Sevimlilərə Əlavə Et / Çıxar Funksiyası */
+  /* Sevimlilər Toggle */
   const toggleBookmarkTrack = (trackId) => {
     setBookmarkedTrackIds((ids) => (ids.includes(trackId) ? ids.filter((i) => i !== trackId) : [...ids, trackId]));
   };
 
-  /* Radio & Gift */
+  // --- 4. CANLI HƏDİYYƏ & BALANS İNTEQRASİYASI ---
   const sendGift = (gift) => {
     const commission = currentUser.monetization.commissionRate;
     const netGiftValue = Math.round(gift.value * (1 - commission));
@@ -343,9 +405,29 @@ export default function App() {
             bookmarkedTrackIds={bookmarkedTrackIds}
             toggleBookmarkTrack={toggleBookmarkTrack}
             playTrack={playTrack}
+            walletBalance={walletBalance}
           />
         )}
       </main>
+
+      {/* --- 3. MAHNININ SÖZLƏRİ (LYRICS) MODALI --- */}
+      {showLyricsModal && currentTrack && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-[#2A211F] border border-[#C5A059]/40 rounded-2xl max-w-lg w-full p-6 text-[#F7F3ED] shadow-2xl relative max-h-[80vh] flex flex-col">
+            <button
+              onClick={() => setShowLyricsModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-white text-xl font-bold"
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-bold text-[#C5A059] mb-1">{currentTrack.title}</h3>
+            <p className="text-sm text-[#D8BD84] mb-4">{currentTrack.singer}</p>
+            <div className="overflow-y-auto pr-2 space-y-3 text-sm leading-relaxed whitespace-pre-line text-stone-200 border-t border-stone-700/60 pt-4">
+              {currentTrack.lyrics || "Bu mahnı üçün sözlər hələ əlavə edilməyib. 🎼"}
+            </div>
+          </div>
+        </div>
+      )}
 
       <PlayerBar
         currentTrack={currentTrack}
@@ -353,6 +435,7 @@ export default function App() {
         togglePlay={togglePlay}
         setIsPlaying={setIsPlaying}
         progress={progress}
+        duration={duration}
         seek={seek}
         volume={volume}
         setVolume={setVolume}
@@ -369,6 +452,7 @@ export default function App() {
         cancelSleep={cancelSleep}
         savedTrackIds={bookmarkedTrackIds}
         toggleSaveTrack={toggleBookmarkTrack}
+        onOpenLyrics={() => setShowLyricsModal(true)}
       />
     </div>
   );

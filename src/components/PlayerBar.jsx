@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Clock, Heart, Bookmark } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Clock, Heart, Bookmark, FileText } from 'lucide-react';
 
 export default function PlayerBar({ 
   currentTrack, 
   isPlaying, 
   setIsPlaying, 
+  progress = 0,
+  duration = 180,
+  seek,
+  volume = 80,
+  setVolume,
+  muted,
+  toggleMute,
+  next,
+  prev,
   savedTrackIds = [], 
-  toggleSaveTrack 
+  toggleSaveTrack,
+  onOpenLyrics
 }) {
-  const [progress, setProgress] = useState(30);
-  const [volume, setVolume] = useState(80);
-  const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showTimerModal, setShowTimerModal] = useState(false);
   const [timerMinutes, setTimerMinutes] = useState(null);
@@ -18,16 +25,12 @@ export default function PlayerBar({
   const trackId = currentTrack?.id;
   const isSaved = savedTrackIds.includes(trackId);
 
-  useEffect(() => {
-    if (!timerMinutes) return;
-    const timer = setTimeout(() => {
-      setIsPlaying(false);
-      setTimerMinutes(null);
-      alert('MeloDaily Sleep Timer: Musiqi dayandırıldı 🌙');
-    }, timerMinutes * 60 * 1000);
-
-    return () => clearTimeout(timer);
-  }, [timerMinutes, setIsPlaying]);
+  const formatTime = (secs) => {
+    if (!secs || isNaN(secs)) return '0:00';
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   if (!currentTrack) return null;
 
@@ -38,7 +41,7 @@ export default function PlayerBar({
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
-        {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər */}
+        {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər & Lyrics */}
         <div className="flex items-center gap-3 w-full md:w-1/3">
           <div 
             className="w-11 h-11 rounded-lg flex items-center justify-center font-serif text-lg border shrink-0"
@@ -55,24 +58,33 @@ export default function PlayerBar({
             </p>
           </div>
 
-          {/* Düymələr: Sosial Bəyənmə (Ürək - Kontent Yaradıcısına) & Sevimlilər (Əlfəcin - Şəxsi Siyahı) */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* Ürək (Kontent Yaradıcısına gedən Like) */}
+            {/* Mahnı Sözləri (Lyrics) Düyməsi */}
+            <button 
+              onClick={onOpenLyrics} 
+              className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
+              style={{ color: '#D8BD84' }}
+              title="Mahnı sözləri (Lyrics)"
+            >
+              <FileText size={18} />
+            </button>
+
+            {/* Ürək */}
             <button 
               onClick={() => setIsLiked(!isLiked)} 
               className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
               style={{ color: isLiked ? '#E53E3E' : '#D8BD84' }}
-              title={isLiked ? "Bəyənməni ləğv et" : "Yaradıcının bu işini bəyən"}
+              title={isLiked ? "Bəyənməni ləğv et" : "Bəyən"}
             >
               <Heart size={18} className={isLiked ? 'fill-[#E53E3E]' : ''} />
             </button>
 
-            {/* Əlfəcin (Sevimlilərə Əlavə Et - Profilə düşən) */}
+            {/* Əlfəcin */}
             <button 
               onClick={() => trackId && toggleSaveTrack && toggleSaveTrack(trackId)} 
               className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
               style={{ color: isSaved ? '#C5A059' : '#D8BD84' }}
-              title={isSaved ? "Sevimlilərdən çıxar" : "Şəxsi Sevimlilərimə əlavə et"}
+              title={isSaved ? "Sevimlilərdən çıxar" : "Sevimlilərə əlavə et"}
             >
               <Bookmark size={18} className={isSaved ? 'fill-[#C5A059]' : ''} />
             </button>
@@ -82,7 +94,7 @@ export default function PlayerBar({
         {/* Orta: Pleyer İdarəetməsi */}
         <div className="flex flex-col items-center gap-1.5 w-full md:w-1/3">
           <div className="flex items-center gap-4">
-            <button className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
+            <button onClick={prev} className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
               <SkipBack size={18} />
             </button>
             <button 
@@ -92,23 +104,23 @@ export default function PlayerBar({
             >
               {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
             </button>
-            <button className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
+            <button onClick={next} className="transition hover:scale-110" style={{ color: '#D8BD84' }}>
               <SkipForward size={18} />
             </button>
           </div>
 
           <div className="flex items-center gap-2 w-full text-[11px]" style={{ color: '#D8BD84' }}>
-            <span>1:15</span>
+            <span>{formatTime(progress)}</span>
             <input 
               type="range" 
               min="0" 
-              max="100" 
+              max={duration || 100} 
               value={progress} 
-              onChange={(e) => setProgress(e.target.value)}
+              onChange={(e) => seek && seek(Number(e.target.value))}
               className="w-full h-1 rounded-lg appearance-none cursor-pointer accent-[#C5A059]"
               style={{ background: 'rgba(247,243,237,0.15)' }}
             />
-            <span>3:45</span>
+            <span>{formatTime(duration)}</span>
           </div>
         </div>
 
@@ -124,15 +136,15 @@ export default function PlayerBar({
           </button>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsMuted(!isMuted)} style={{ color: '#D8BD84' }}>
-              {isMuted || volume === '0' ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            <button onClick={toggleMute} style={{ color: '#D8BD84' }}>
+              {muted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
             <input 
               type="range" 
               min="0" 
               max="100" 
-              value={isMuted ? 0 : volume} 
-              onChange={(e) => { setVolume(e.target.value); setIsMuted(false); }}
+              value={muted ? 0 : volume} 
+              onChange={(e) => setVolume && setVolume(Number(e.target.value))}
               className="w-20 h-1 rounded-lg appearance-none cursor-pointer accent-[#C5A059]"
               style={{ background: 'rgba(247,243,237,0.15)' }}
             />
