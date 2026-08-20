@@ -15,11 +15,9 @@ export default function PlayerBar({
   const [showTimerModal, setShowTimerModal] = useState(false);
   const [timerMinutes, setTimerMinutes] = useState(null);
 
-  // Cari mahnının sevimlilərdə olub-olmadığını yoxlayırıq
-  const trackId = currentTrack?.id || currentTrack?.title;
+  const trackId = currentTrack?.id;
   const isSaved = savedTrackIds.includes(trackId);
 
-  // Sleep Timer Alqoritmi
   useEffect(() => {
     if (!timerMinutes) return;
     const timer = setTimeout(() => {
@@ -40,7 +38,7 @@ export default function PlayerBar({
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
-        {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər düymələri */}
+        {/* Sol: Mahnı haqqında + Reaksiya & Sevimlilər */}
         <div className="flex items-center gap-3 w-full md:w-1/3">
           <div 
             className="w-11 h-11 rounded-lg flex items-center justify-center font-serif text-lg border shrink-0"
@@ -57,24 +55,24 @@ export default function PlayerBar({
             </p>
           </div>
 
-          {/* Düymələr: Sosial Bəyənmə (Ürək) və Profildə Sevimlilər (Əlfəcin) */}
+          {/* Düymələr: Sosial Bəyənmə (Ürək - Kontent Yaradıcısına) & Sevimlilər (Əlfəcin - Şəxsi Siyahı) */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* Ürək - Sosial Bəyənmə */}
+            {/* Ürək (Kontent Yaradıcısına gedən Like) */}
             <button 
               onClick={() => setIsLiked(!isLiked)} 
               className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
               style={{ color: isLiked ? '#E53E3E' : '#D8BD84' }}
-              title={isLiked ? "Bəyənməni geri götür" : "Bəyən"}
+              title={isLiked ? "Bəyənməni ləğv et" : "Yaradıcının bu işini bəyən"}
             >
               <Heart size={18} className={isLiked ? 'fill-[#E53E3E]' : ''} />
             </button>
 
-            {/* Əlfəcin - Profil Sevimlilərinə Əlavə Et */}
+            {/* Əlfəcin (Sevimlilərə Əlavə Et - Profilə düşən) */}
             <button 
-              onClick={() => toggleSaveTrack && toggleSaveTrack(trackId)} 
+              onClick={() => trackId && toggleSaveTrack && toggleSaveTrack(trackId)} 
               className="p-1.5 rounded-lg transition hover:bg-stone-800/50"
               style={{ color: isSaved ? '#C5A059' : '#D8BD84' }}
-              title={isSaved ? "Sevimlilərdən çıxar" : "Sevimlilərə əlavə et"}
+              title={isSaved ? "Sevimlilərdən çıxar" : "Şəxsi Sevimlilərimə əlavə et"}
             >
               <Bookmark size={18} className={isSaved ? 'fill-[#C5A059]' : ''} />
             </button>
