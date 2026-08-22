@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import PlayerBar from './components/PlayerBar';
-import AdminTab from './tabs/AdminTab';
+import AdminPanel from './tabs/AdminPanel';
 import HomeTab from './components/HomeTab';
 import FeedTab from './tabs/FeedTab';
 import MusicTab from './tabs/MusicTab';
@@ -81,7 +81,7 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'admin') {
-      if (currentUser.role === 'admin') {
+      if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
         setActiveTab('admin');
       } else {
         console.warn('Bu səhifəyə giriş icazəniz yoxdur və ya hələ daxil olunmayıb!');
@@ -513,11 +513,7 @@ export default function App() {
           />
         )}
         {activeTab === 'admin' && (
-          <AdminTab
-            tracks={tracks}
-            setTracks={setTracks}
-            currentUser={currentUser}
-          />
+          <AdminPanel currentUser={currentUser} />
         )}
       </main>
 
