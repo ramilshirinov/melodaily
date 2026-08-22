@@ -49,7 +49,7 @@ export const TRACKS = [
   { id: 15, title: 'Historia de un Amor', singer: 'Julio Iglesias', film: 'Discos CBS Arxivi', creator: 'Carlos Eleta Almarán bəstəsi · 1977', mood: 'Nostaljik', decade: '1970-lar', genre: 'pop', isForeign: true, duration: 210, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(15) },
   { id: 21, title: 'Yesterday', singer: 'The Beatles', film: 'Parlophone Arxivi', creator: 'Lennon–McCartney bəstəsi · 1965', mood: 'Kədərli-Şirin', decade: '1960-lar', genre: 'rock', isForeign: true, duration: 125, colors: ['#33324A', '#2A211F'], audioUrl: DEMO_AUDIO(16) },
 
-  // --- Müasir və Zamansız İfalar (yalnız retro deyil) ---
+  // --- Müasir və Zamansız İfalar ---
   { id: 16, title: 'Gecənin Sonu', singer: 'Zülfiyyə Xanbabayeva', film: 'Stüdiya Buraxılışı', creator: 'Müasir Estrada Arxivi · 2016', mood: 'Romantik', decade: '2010-lar', genre: 'pop', isForeign: false, duration: 205, colors: ['#C5A059', '#6E2C2C'], audioUrl: DEMO_AUDIO(1) },
   { id: 17, title: 'Come Away With Me', singer: 'Norah Jones', film: 'Blue Note Records Arxivi', creator: 'Norah Jones bəstəsi · 2002', mood: 'Rahatlıq', decade: '2000-lər', genre: 'jazz', isForeign: true, duration: 220, colors: ['#7C8B6F', '#2A211F'], audioUrl: DEMO_AUDIO(2) },
   { id: 18, title: 'Perfect', singer: 'Ed Sheeran', film: 'Asylum Records Arxivi', creator: 'Ed Sheeran bəstəsi · 2017', mood: 'Romantik', decade: '2010-lar', genre: 'pop', isForeign: true, duration: 263, colors: ['#B08D4F', '#2A211F'], audioUrl: DEMO_AUDIO(3) },
@@ -59,7 +59,7 @@ export const TRACKS = [
 
 export const trackById = (id) => TRACKS.find((t) => t.id === id);
 
-// ---------- Sosial Axın (Feed) — istifadəçi postları ----------
+// ---------- Sosial Axın (Feed) ----------
 export const SOCIAL_POSTS = [
   { id: 1, author: 'Nərgiz Əliyeva', avatarInitial: 'N', type: 'text', content: 'Bu gün babamın vinillərini tapdım, "Bizim Nəğmə" hələ də ilk gündəki kimi səslənir 🎶', trackId: 10, likes: 64, comments: 5, time: '2 saat əvvəl' },
   { id: 2, author: 'Tural Məmmədov', avatarInitial: 'T', type: 'image', content: 'Köhnə İçərişəhər küçələri — bu axşam üçün ideal fon musiqisi ilə.', trackId: 2, likes: 112, comments: 9, time: '5 saat əvvəl' },
@@ -85,7 +85,7 @@ export const FEED_SEED = [
   ]},
 ];
 
-// ---------- Əhval-ruhiyyə Sürətli Filtrləri (MeloMood AI) ----------
+// ---------- Əhval-ruhiyyə Sürətli Filtrləri ----------
 export const MOOD_FILTERS = [
   { id: 'baku-rain', label: 'Bakı Yağışı', mood: 'Rahatlıq' },
   { id: 'night-drive', label: 'Gecə Sürüşü', mood: 'Gecə' },
@@ -108,12 +108,28 @@ export const GIFT_HISTORY_SEED = [
   { id: 4, user: 'Ruslan07', gift: 'Qrammofon', time: '14 dəq əvvəl' },
 ];
 
-// ---------- Profil ----------
+// ---------- Profil və Rollar ----------
 export const BADGES = [
   { name: 'Retro Aşiqi', desc: '50+ retro parça dinləyib' },
   { name: 'Erkən Üzv', desc: 'İlk 1000 istifadəçidən biri' },
   { name: '100 Bəyənmə', desc: '100 videoya ürək verib' },
   { name: 'Səxavətli Dinləyici', desc: 'MeloRadio-da hədiyyə göndərib' },
+];
+
+export const ROLE_META = {
+  super_admin: { label: 'Super Admin', color: '#EF4444', badge: '👑' },
+  admin: { label: 'Admin', color: '#F59E0B', badge: '🛡️' },
+  vip_star: { label: 'VIP Ulduz', color: '#C5A059', badge: '🌟' },
+  verified_creator: { label: 'Verifikasiyalı Yaradıcı', color: '#3B82F6', badge: '✓' },
+  listener: { label: 'Dinləyici', color: '#9CA3AF', badge: '🎧' }
+};
+
+export const CREATOR_TOPICS = [
+  'MeloDaily Qurucusu & Retro Kolleksioner',
+  'Retro Musiqi Tədqiqatçısı',
+  'Klassik Azərbaycan Filmləri',
+  'Nostaljik Əsərlər & Bəstəkarlar',
+  'Milli Estrada Vokalisti'
 ];
 
 export const VINYL_COLLECTION_IDS = [1, 3, 5, 8, 4, 9];
@@ -125,14 +141,12 @@ export const LOVE_NOTES_SEED = [
 
 export const NEGATIVE_WORDS = ['axmaq', 'zibil', 'nifrət', 'iyrənc', 'stupid', 'hate', 'ugly', 'terrible', 'idiot'];
 
-// ---------- Köməkçi funksiyalar ----------
 export const formatTime = (s) => {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
   return `${m}:${sec < 10 ? '0' : ''}${sec}`;
 };
 
-// ---------- Stil, Rəng və Şrift Sabitləri ----------
 export const FONT_IMPORT_URL = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap";
 
 export const displayFont = "'Playfair Display', serif";

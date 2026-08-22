@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import PlayerBar from './components/PlayerBar';
+import AdminTab from './tabs/AdminTab';
 import HomeTab from './components/HomeTab';
 import FeedTab from './tabs/FeedTab';
 import MusicTab from './tabs/MusicTab';
 import RadioTab from './tabs/RadioTab';
 import TogetherTab from './tabs/TogetherTab';
 import ProfileTab from './tabs/ProfileTab';
-
-import { supabase } from './lib/supabase'; // Supabase bağlantısı
-
+import LeaderboardTab from './tabs/LeaderboardTab';
+import { supabase } from './lib/supabase';
+import { useAuth } from './context/AuthContext';
 import {
   FONT_IMPORT_URL, COLORS, TRACKS as INITIAL_TRACKS, FEED_SEED, GIFT_HISTORY_SEED,
   MOOD_FILTERS, LOVE_NOTES_SEED, NEGATIVE_WORDS, trackById, bodyFont
@@ -46,18 +47,47 @@ export default function App() {
     fetchTracksFromSupabase();
   }, []);
 
-  // User Profile
-  const [currentUser] = useState({
-    id: 'u_admin_01',
-    name: 'Ramil Şirinov',
-    username: '@ramil_shirinov',
-    role: 'super_admin',
-    creatorLevel: 'vip_star',
-    topic: 'MeloDaily Qurucusu & Retro Kolleksioner',
-    isVerified: true,
-    ratingScore: 125000,
-    monetization: { isEligible: true, commissionRate: 0.20 }
-  });
+  // User Profile — Supabase Auth-dan gəlir, giriş yoxdursa "Qonaq" kimi işləyir
+  const { profile: authProfile } = useAuth();
+
+  const currentUser = authProfile
+    ? {
+        id: authProfile.id,
+        name: authProfile.name || 'İstifadəçi',
+        username: authProfile.username ? `@${authProfile.username}` : '@istifadeci',
+        role: authProfile.role || 'listener',
+        creatorLevel: authProfile.role || 'listener',
+        topic: authProfile.topic || '',
+        isVerified: !!authProfile.is_verified,
+        ratingScore: authProfile.rating_score || 0,
+        monetization: {
+          isEligible: authProfile.role !== 'listener',
+          commissionRate: 0.20,
+        },
+      }
+    : {
+        id: 'guest',
+        name: 'Qonaq İstifadəçi',
+        username: '@qonaq',
+        role: 'listener',
+        creatorLevel: 'listener',
+        topic: '',
+        isVerified: false,
+        ratingScore: 0,
+        monetization: { isEligible: false, commissionRate: 0 },
+      };
+
+  // --- URL vasitəsilə gizli Admin girişi və Supabase Rol Yoxlaması ---
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'admin') {
+      if (currentUser.role === 'admin') {
+        setActiveTab('admin');
+      } else {
+        console.warn('Bu səhifəyə giriş icazəniz yoxdur və ya hələ daxil olunmayıb!');
+      }
+    }
+  }, [currentUser.role]);
 
   // LocalStorage
   const [bookmarkedTrackIds, setBookmarkedTrackIds] = useState(() => {
@@ -151,13 +181,16 @@ export default function App() {
   }, [currentTrack, handleNext]);
 
   useEffect(() => {
-    if (currentTrack?.audio_url || currentTrack?.audioUrl) {
-      const url = currentTrack.audio_url || currentTrack.audioUrl;
-      if (audioRef.current.src !== url) {
-        audioRef.current.src = url;
+    const audioUrl = currentTrack?.audio_url || currentTrack?.audioUrl;
+    if (audioUrl) {
+      if (audioRef.current.src !== audioUrl) {
+        audioRef.current.src = audioUrl;
       }
       if (isPlaying) {
-        audioRef.current.play().catch(() => setIsPlaying(false));
+        audioRef.current.play().catch((err) => {
+          console.error("Audio play error:", err);
+          setIsPlaying(false);
+        });
       } else {
         audioRef.current.pause();
       }
@@ -259,7 +292,7 @@ export default function App() {
       creator: currentUser.name,
       cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
       audio_url: newTrackData.audioUrl || '',
-      lyrics: "İstifadəçi tərəfindən yüklənən audio faylı."
+      lyrics: newTrackData.caption || "İstifadəçi tərəfindən yüklənən audio faylı."
     };
 
     try {
@@ -270,7 +303,6 @@ export default function App() {
 
       if (error) {
         console.error('Supabase-ə yazılarkən xəta:', error.message);
-        // Baza xətası olarsa belə lokal olaraq əlavə edirik
         const fallbackTrack = { id: Date.now(), ...trackPayload };
         setTracks((prev) => [fallbackTrack, ...prev]);
         playTrack(fallbackTrack);
@@ -286,18 +318,18 @@ export default function App() {
     }
   };
 
-  /* Filters */
+  /* Filters (Azərbaycan hərfləri dəstəyi ilə) */
   const matchesFilter = useCallback(
     (track) => {
       if (!track) return false;
-      const q = search.trim().toLowerCase();
+      const q = (search || '').trim().toLocaleLowerCase('az');
       if (q) {
-        const hay = `${track.title} ${track.singer} ${track.film} ${track.mood} ${track.decade}`.toLowerCase();
+        const hay = `${track.title || ''} ${track.singer || ''} ${track.film || ''} ${track.mood || ''} ${track.decade || ''} ${track.lyrics || ''}`.toLocaleLowerCase('az');
         if (!hay.includes(q)) return false;
       }
-      if (filters.singer && !track.singer?.includes(filters.singer)) return false;
+      if (filters.singer && !track.singer?.toLocaleLowerCase('az').includes(filters.singer.toLocaleLowerCase('az'))) return false;
       if (filters.film && track.film !== filters.film) return false;
-      if (filters.author && !track.creator?.includes(filters.author)) return false;
+      if (filters.author && !track.creator?.toLocaleLowerCase('az').includes(filters.author.toLocaleLowerCase('az'))) return false;
       if (filters.decade && track.decade !== filters.decade) return false;
       if (filters.mood && track.mood !== filters.mood) return false;
       return true;
@@ -397,6 +429,7 @@ export default function App() {
             onPlayTrack={playTrack}
             currentTrack={currentTrack}
             isPlaying={isPlaying}
+            search={search}
           />
         )}
         {activeTab === 'feed' && (
@@ -471,6 +504,19 @@ export default function App() {
             toggleBookmarkTrack={toggleBookmarkTrack}
             playTrack={playTrack}
             walletBalance={walletBalance}
+          />
+        )}
+        {activeTab === 'leaderboard' && (
+          <LeaderboardTab
+            creators={tracks}
+            currentUser={currentUser}
+          />
+        )}
+        {activeTab === 'admin' && (
+          <AdminTab
+            tracks={tracks}
+            setTracks={setTracks}
+            currentUser={currentUser}
           />
         )}
       </main>
